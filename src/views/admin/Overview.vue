@@ -1,0 +1,243 @@
+<script>
+import { mapStores } from 'pinia';
+import { useStore } from '@/stores/shop.js';
+import { Wallet, ShoppingBag, Package, Truck, ArrowRight } from 'lucide-vue-next';
+import StatusBadge from '@/components/StatusBadge.vue';
+import { refreshAdminData } from '@/services/shopApi.js';
+
+export default {
+    name: 'AdminOverviewView',
+    components: { Wallet, ShoppingBag, Package, Truck, ArrowRight, StatusBadge },
+    computed: {
+        ...mapStores(useStore),
+        s() { return this.shopStore; },
+        recent() { return this.s.orders.slice().reverse().slice(0, 5); },
+        todo() { return this.s.orders.filter(order => order.fulfillmentStatus === 'processing'); },
+        bars() {
+            const days = Array.from({ length: 7 }, (_, index) => {
+                const date = new Date();
+                date.setDate(date.getDate() - (6 - index));
+                return date.toISOString().slice(0, 10);
+            });
+            return days.map(day => ({
+                date: day,
+                value: this.s.orders.filter(order => String(order.createdAt).slice(0, 10) === day)
+                    .reduce((sum, order) => sum + Number(order.total || 0), 0)
+            }));
+        },
+        max() { return Math.max(100, ...this.bars.map(item => item.value)); }
+    },
+    async mounted() {
+        try { await refreshAdminData(this.s); }
+        catch (error) { this.loadError = error.message; }
+    },
+    data() { return { loadError: '' }; }
+};
+</script>
+
+<template>
+    <div>
+        <div class="admin-page-top">
+            <div>
+                <p class="eyebrow">YOUR STORE, IN FOCUS</p>
+
+                <h1>Overview</h1>
+
+                <p class="muted">
+                    A quick look at what is happening across ShopNest.
+                </p>
+            </div>
+
+            <span class="demo-tag">DATABASE RECORDS</span>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-sm-6 col-xl-3">
+                <div class="metric-card">
+                    <Wallet />
+                    <span>Simulated revenue</span>
+                    <strong>RM {{ s.sales.toFixed(2) }}</strong>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-3">
+                <div class="metric-card">
+                    <ShoppingBag />
+                    <span>Total orders</span>
+                    <strong>{{ s.orders.length }}</strong>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-3">
+                <div class="metric-card">
+                    <Package />
+                    <span>Products</span>
+                    <strong>{{ s.products.length }}</strong>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-3">
+                <div class="metric-card">
+                    <Truck />
+                    <span>To fulfill</span>
+                    <strong>{{ todo.length }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-2">
+            <div class="col-xl-8">
+                <section class="panel h-100">
+                    <div class="panel-header">
+                        <h2>Sales over the last 7 days</h2>
+
+                        <span class="muted small">
+                            Recorded orders · MYR
+                        </span>
+                    </div>
+
+                    <div
+                        class="mini-chart"
+                        role="img"
+                        aria-label="Bar chart of demo sales over the last seven days"
+                    >
+                        <div
+                            v-for="b in bars"
+                            :key="b.date"
+                            class="chart-column"
+                        >
+                            <span class="chart-value">
+                                {{ b.value ? Math.round(b.value) : '' }}
+                            </span>
+
+                            <div class="chart-track">
+                                <div
+                                    :style="{
+                                        height: Math.max(2, b.value / max * 100) + '%'
+                                    }"
+                                    class="chart-bar"
+                                ></div>
+                            </div>
+
+                            <span>
+                                {{ b.date.slice(5) }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <details class="mt-3">
+                        <summary>View sales as a table</summary>
+
+                        <v-table class="mt-2" density="comfortable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Revenue (MYR)</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr
+                                    v-for="b in bars"
+                                    :key="b.date"
+                                >
+                                    <td>{{ b.date }}</td>
+                                    <td>{{ b.value.toFixed(2) }}</td>
+                                </tr>
+                            </tbody>
+                        </v-table>
+                    </details>
+                </section>
+            </div>
+
+            <div class="col-xl-4">
+                <section class="panel h-100">
+                    <div class="panel-header">
+                        <h2>Needs attention</h2>
+                        <Truck :size="19" />
+                    </div>
+
+                    <div v-if="todo.length">
+                        <div
+                            v-for="o in todo.slice(0, 4)"
+                            :key="o.id"
+                            class="attention-row"
+                        >
+                            <div>
+                                <strong>{{ o.id }}</strong>
+
+                                <p class="muted small mb-0">
+                                    {{ o.customer }}
+                                </p>
+                            </div>
+
+                            <RouterLink
+                                class="btn btn-outline-primary btn-sm"
+                                :to="'/admin/orders/' + o.id"
+                            >
+                                Review
+                            </RouterLink>
+                        </div>
+                    </div>
+
+                    <div v-else class="empty-inline">
+                        All caught up! No physical orders awaiting fulfillment.
+                    </div>
+
+                    <RouterLink
+                        to="/admin/orders"
+                        class="text-cta mt-3 d-inline-flex"
+                    >
+                        Manage orders
+                        <ArrowRight :size="16" />
+                    </RouterLink>
+                </section>
+            </div>
+        </div>
+
+        <section class="panel mt-4">
+            <div class="panel-header">
+                <h2>Recent orders</h2>
+
+                <RouterLink
+                    to="/admin/orders"
+                    class="text-cta"
+                >
+                    All orders
+                    <ArrowRight :size="16" />
+                </RouterLink>
+            </div>
+
+            <div v-if="recent.length">
+                <div
+                    v-for="o in recent"
+                    :key="o.id"
+                    class="order-row"
+                >
+                    <div>
+                        <RouterLink
+                            :to="'/admin/orders/' + o.id"
+                            class="fw-bold"
+                        >
+                            {{ o.id }}
+                        </RouterLink>
+
+                        <p class="muted small mb-0">
+                            {{ o.customer }}
+                        </p>
+                    </div>
+
+                    <strong>
+                        RM {{ o.total.toFixed(2) }}
+                    </strong>
+
+                    <StatusBadge :value="o.fulfillmentStatus" />
+                </div>
+            </div>
+
+            <div v-else class="empty-inline">
+                No orders have been recorded yet.
+            </div>
+        </section>
+    </div>
+</template>
