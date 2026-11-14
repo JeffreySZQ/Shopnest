@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS products (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     sku VARCHAR(40) NOT NULL UNIQUE,
     name VARCHAR(150) NOT NULL,
+    image_path VARCHAR(255) NOT NULL,
+    image_alt VARCHAR(255) NOT NULL,
     category VARCHAR(80) NOT NULL,
     product_type ENUM('physical', 'digital') NOT NULL,
     price DECIMAL(10,2) UNSIGNED NOT NULL,
