@@ -215,8 +215,13 @@ function finish() {
             </form>
 
             <aside class="summary-card">
+            
                 <h2>Order review</h2>
-
+                <p class="muted small">
+                    All orders are processed and recorded in Malaysian Ringgit (MYR).
+                    Your selected display currency does not change the payable amount.
+                </p>
+                
                 <div
                     v-for="i in s.cartItems"
                     :key="i.productId"

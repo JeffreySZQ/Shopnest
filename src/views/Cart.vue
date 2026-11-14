@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useStore } from '@/stores/shop.js';
+import { useCurrencyStore } from '@/stores/currency.js';
 import {
     Minus,
     Plus,
@@ -12,6 +13,7 @@ import ProductArt from '@/components/ProductArt.vue';
 import PageHeading from '@/components/PageHeading.vue';
 
 const s = useStore(),
+    currency = useCurrencyStore(),
     notice = ref('');
 
 const shipping = computed(() =>
@@ -60,7 +62,7 @@ function qty(i, n) {
                         </RouterLink>
 
                         <p class="muted">
-                            RM {{ i.product.price.toFixed(2) }} each
+                            {{ currency.formatPrice(i.product.price) }} each
                         </p>
 
                         <div class="cart-controls">
@@ -93,7 +95,7 @@ function qty(i, n) {
                     </div>
 
                     <strong>
-                        RM {{ (i.product.price * i.quantity).toFixed(2) }}
+                        {{ currency.formatPrice(i.product.price * i.quantity) }}
                     </strong>
                 </div>
 
@@ -120,7 +122,7 @@ function qty(i, n) {
                     <span>Subtotal ({{ s.cartCount }} items)</span>
 
                     <strong>
-                        RM {{ s.cartSubtotal.toFixed(2) }}
+                        {{ currency.formatPrice(s.cartSubtotal) }}
                     </strong>
                 </div>
 
@@ -128,15 +130,20 @@ function qty(i, n) {
                     <span>Shipping</span>
 
                     <strong>
-                        RM {{ shipping.toFixed(2) }}
+                        {{ currency.formatPrice(shipping) }}
                     </strong>
                 </div>
 
                 <div class="summary-total">
                     <span>Total</span>
+                    
+                    <p class="muted small mt-3 mb-0">
+                        Prices are displayed using the selected reference exchange rate.
+                        Final checkout and order records remain in MYR.
+                    </p>
 
                     <strong>
-                        RM {{ (s.cartSubtotal + shipping).toFixed(2) }}
+                        {{ currency.formatPrice(s.cartSubtotal + shipping) }}
                     </strong>
                 </div>
 

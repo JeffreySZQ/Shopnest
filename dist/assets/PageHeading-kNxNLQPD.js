@@ -1,0 +1,5 @@
+<<<<<<<< HEAD:dist/assets/PageHeading-CaIy32M7.js
+import{o as t,c as s,t as o,f as a,d as r,H as i}from"./index-CJb8Jt77.js";const c={class:"page-heading"},d={key:0,class:"eyebrow"},l={key:1,class:"muted lead-copy"},u={__name:"PageHeading",props:{eyebrow:String,title:String,description:String},setup(e){return(n,g)=>(t(),s("div",c,[e.eyebrow?(t(),s("p",d,o(e.eyebrow),1)):a("",!0),r("h1",null,o(e.title),1),e.description?(t(),s("p",l,o(e.description),1)):a("",!0),i(n.$slots,"default")]))}};export{u as _};
+========
+import{o as t,c as s,t as o,g as a,e as r,I as i}from"./index-CmK57hR_.js";const c={class:"page-heading"},d={key:0,class:"eyebrow"},l={key:1,class:"muted lead-copy"},u={__name:"PageHeading",props:{eyebrow:String,title:String,description:String},setup(e){return(n,g)=>(t(),s("div",c,[e.eyebrow?(t(),s("p",d,o(e.eyebrow),1)):a("",!0),r("h1",null,o(e.title),1),e.description?(t(),s("p",l,o(e.description),1)):a("",!0),i(n.$slots,"default")]))}};export{u as _};
+>>>>>>>> 4a3f49b518a892b1effce738d3a041fcf0eca8aa:dist/assets/PageHeading-kNxNLQPD.js
