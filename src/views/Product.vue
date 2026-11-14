@@ -1,8 +1,7 @@
-
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import {
+import { useCurrencyStore } from '@/stores/currency.js';import {
   Heart,
   ShoppingCart,
   ArrowLeft,
@@ -17,6 +16,7 @@ import ProductArt from '@/components/ProductArt.vue'
 import ProductCard from '@/components/ProductCard.vue'
 
 const s = useStore()
+const currency = useCurrencyStore()
 const route = useRoute()
 const router = useRouter()
 const qty = ref(1)
@@ -85,7 +85,7 @@ function like() {
         <p class="muted product-detail-short">{{ p.short }}</p>
 
         <div class="d-flex align-items-center gap-3 mb-4">
-          <strong class="detail-price">RM {{ p.price.toFixed(2) }}</strong>
+          <strong class="detail-price">{{ currency.formatPrice(p.price) }}</strong>
           <span class="status-badge status-good">
             {{ p.type === 'digital' ? 'Digital delivery' : p.stock > 0 ? 'In stock' : 'Out of stock' }}
           </span>

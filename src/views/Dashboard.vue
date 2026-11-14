@@ -1,4 +1,3 @@
-
 <script setup>
 import { computed } from 'vue'
 import { useStore } from '@/stores/shop.js'

@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { Heart, Plus, Check } from 'lucide-vue-next';
 import { useStore } from '@/stores/shop.js';
 import ProductArt from './ProductArt.vue';
+import { useCurrencyStore } from '@/stores/currency.js';
 
 defineProps({
     product: {
@@ -12,6 +13,7 @@ defineProps({
 });
 
 const s = useStore(),
+    currency = useCurrencyStore(),
     added = ref(false),
     error = ref('');
 
@@ -65,7 +67,7 @@ function like(p) {
 
             <div class="product-card-bottom">
                 <strong class="product-price">
-                    RM {{ product.price.toFixed(2) }}
+                    {{ currency.formatPrice(product.price) }}
                 </strong>
 
                 <button
