@@ -1,40 +1,35 @@
 
 <script setup>
-import { computed, reactive, ref, watch } from 'vue';
+import {
+    computed,
+    reactive,
+    ref,
+    watch,
+    onBeforeUnmount
+} from 'vue';
+
 import { useRoute, useRouter } from 'vue-router';
-import { ArrowLeft, Save } from 'lucide-vue-next';
+import { ArrowLeft } from 'lucide-vue-next';
 import { api } from '@/services/shopApi.js';
 
 const route = useRoute();
 const router = useRouter();
 
+// Product data
 const products = ref([]);
 const productForm = ref(null);
 
+// Loading and error states
 const error = ref('');
 const loading = ref(false);
 const saving = ref(false);
 const loadFailed = ref(false);
 
-// Find the existing product from API-loaded data.
-const existing = computed(() =>
-    products.value.find(
-        p => Number(p.id) === Number(route.params.id)
-    ) || null
-);
+// Image upload states
+const selectedImage = ref(null);
+const previewUrl = ref('');
 
-// Get available categories from the database products.
-const categories = computed(() =>
-    Array.from(
-        new Set(
-            products.value
-                .map(p => p.category)
-                .filter(Boolean)
-        )
-    ).sort()
-);
-
-// Product form data.
+// Product form model
 const model = reactive({
     name: '',
     sku: '',
@@ -49,7 +44,40 @@ const model = reactive({
     imageAlt: ''
 });
 
-// Vuetify validation rules.
+// Existing product
+const existing = computed(() =>
+    products.value.find(
+        p => Number(p.id) === Number(route.params.id)
+    ) || null
+);
+
+// Available categories
+const categories = computed(() =>
+    Array.from(
+        new Set(
+            products.value
+                .map(p => p.category)
+                .filter(Boolean)
+        )
+    ).sort()
+);
+
+// Image preview
+const imagePreview = computed(() => {
+    if (previewUrl.value) {
+        return previewUrl.value;
+    }
+
+    if (!model.imagePath) {
+        return '';
+    }
+
+    const path = String(model.imagePath).replace(/^\/+/, '');
+
+    return `${import.meta.env.BASE_URL}${path}`;
+});
+
+// Vuetify validation rules
 const rules = {
     required: value =>
         !!String(value ?? '').trim() ||
@@ -71,21 +99,19 @@ const rules = {
     },
 
     nonNegative: value =>
-        (
-            value !== '' &&
-            value !== null &&
-            value !== undefined &&
-            Number.isFinite(Number(value)) &&
-            Number(value) >= 0
-        ) || 'Enter a zero or positive number.',
+        value !== '' &&
+        value !== null &&
+        value !== undefined &&
+        Number.isFinite(Number(value)) &&
+        Number(value) >= 0 ||
+        'Enter a zero or positive number.',
 
     wholeNumber: value =>
-        (
-            value !== '' &&
-            value !== null &&
-            Number.isInteger(Number(value)) &&
-            Number(value) >= 0
-        ) || 'Stock must be a whole number.',
+        value !== '' &&
+        value !== null &&
+        Number.isInteger(Number(value)) &&
+        Number(value) >= 0 ||
+        'Stock must be a non-negative whole number.',
 
     maxName: value =>
         String(value ?? '').length <= 150 ||
@@ -108,7 +134,56 @@ const rules = {
         'Maximum 255 characters allowed.'
 };
 
-// Reset form values.
+// Clear selected image and preview.
+function clearImageSelection() {
+    if (previewUrl.value) {
+        URL.revokeObjectURL(previewUrl.value);
+    }
+
+    previewUrl.value = '';
+    selectedImage.value = null;
+}
+
+// Handle selected image.
+function handleImageSelection(files) {
+    const file = Array.isArray(files)
+        ? files[0]
+        : files;
+
+    if (!file) {
+        clearImageSelection();
+        return;
+    }
+
+    const allowedTypes = [
+        'image/jpeg',
+        'image/png',
+        'image/webp'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+        error.value = 'Only JPG, PNG and WEBP images are supported.';
+        clearImageSelection();
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+        error.value = 'Image must not exceed 5 MB.';
+        clearImageSelection();
+        return;
+    }
+
+    error.value = '';
+
+    if (previewUrl.value) {
+        URL.revokeObjectURL(previewUrl.value);
+    }
+
+    selectedImage.value = file;
+    previewUrl.value = URL.createObjectURL(file);
+}
+
+// Reset form for new product.
 function resetForm() {
     Object.assign(model, {
         name: '',
@@ -123,27 +198,30 @@ function resetForm() {
         imagePath: '',
         imageAlt: ''
     });
+
+    clearImageSelection();
 }
 
-// Load product information directly from PHP API.
+// Load products directly from PHP API.
 async function loadEditor() {
     loading.value = true;
     loadFailed.value = false;
     error.value = '';
 
+    clearImageSelection();
+
     try {
-        // Retrieve products from MySQL through the admin API.
         const result = await api.get('/admin/products');
 
         products.value = result.products || [];
 
-        // New product.
+        // New product
         if (!route.params.id) {
             resetForm();
             return;
         }
 
-        // Find the selected product.
+        // Find existing product
         let product = products.value.find(
             p => Number(p.id) === Number(route.params.id)
         );
@@ -152,7 +230,7 @@ async function loadEditor() {
             throw new Error('Product not found.');
         }
 
-        // Load a restored draft when requested.
+        // Load restored draft version if requested.
         if (route.query.draftVersion) {
             const history = await api.get(
                 `/admin/products/${route.params.id}/versions`
@@ -164,7 +242,7 @@ async function loadEditor() {
             );
 
             if (!draft || !draft.snapshot) {
-                throw new Error('Restored product draft not found.');
+                throw new Error('Restored draft not found.');
             }
 
             product = {
@@ -173,7 +251,7 @@ async function loadEditor() {
             };
         }
 
-        // Populate the form.
+        // Populate form.
         Object.assign(model, {
             name: product.name || '',
             sku: product.sku || '',
@@ -197,7 +275,7 @@ async function loadEditor() {
     }
 }
 
-// Reload when the selected product or restored draft changes.
+// Reload when product route changes.
 watch(
     () => [
         route.params.id,
@@ -207,11 +285,39 @@ watch(
     { immediate: true }
 );
 
-// Save product through the PHP REST API.
+// Upload selected image to Mercury.
+async function uploadImage() {
+    if (!selectedImage.value) {
+        return;
+    }
+
+    const formData = new FormData();
+
+    formData.append('image', selectedImage.value);
+
+    const result = await api.upload(
+        '/admin/upload-image',
+        formData
+    );
+
+    // Save returned relative path in product model.
+    model.imagePath = result.imagePath;
+
+    if (!model.imageAlt.trim()) {
+        model.imageAlt = model.name.trim();
+    }
+
+    // Keep the uploaded image path, but release preview memory.
+    clearImageSelection();
+}
+
+// Save product using PHP API.
 async function save() {
     error.value = '';
 
-    if (loading.value || saving.value) return;
+    if (loading.value || saving.value) {
+        return;
+    }
 
     if (route.params.id && !existing.value) {
         error.value = 'Product could not be loaded. Please try again.';
@@ -226,7 +332,6 @@ async function save() {
         return;
     }
 
-    // Extra numeric validation.
     if (
         !Number.isFinite(Number(model.price)) ||
         Number(model.price) < 0
@@ -249,7 +354,10 @@ async function save() {
     saving.value = true;
 
     try {
-        // Data structure must match the PHP API.
+        // Step 1: Upload image if a new file was selected.
+        await uploadImage();
+
+        // Step 2: Prepare product data.
         const payload = {
             name: model.name.trim(),
             sku: model.sku.trim(),
@@ -268,29 +376,26 @@ async function save() {
 
             description: model.description.trim(),
 
-            imagePath: model.imagePath.trim(),
+            imagePath: model.imagePath,
 
             imageAlt: model.imageAlt.trim() ||
                 model.name.trim()
         };
 
-        // UPDATE existing product.
+        // Step 3: Create or update product.
         if (route.params.id) {
             await api.put(
                 '/products/' + route.params.id,
                 payload
             );
-
         } else {
-            // CREATE new product.
             await api.post(
                 '/products',
                 payload
             );
         }
 
-        // Return to the admin product listing.
-        // Products.vue will reload the database records.
+        // Step 4: Return to product listing.
         router.push('/admin/products');
 
     } catch (e) {
@@ -300,6 +405,11 @@ async function save() {
         saving.value = false;
     }
 }
+
+// Clean up temporary image preview.
+onBeforeUnmount(() => {
+    clearImageSelection();
+});
 </script>
 
 <template>
@@ -335,7 +445,7 @@ async function save() {
                 </p>
             </div>
 
-            <!-- Version History Button -->
+            <!-- Version History -->
             <v-btn
                 v-if="route.params.id"
                 variant="outlined"
@@ -348,7 +458,7 @@ async function save() {
 
         </div>
 
-        <!-- Loading Indicator -->
+        <!-- Loading -->
         <v-progress-linear
             v-if="loading"
             indeterminate
@@ -391,7 +501,7 @@ async function save() {
                 Review before saving.
             </v-alert>
 
-            <!-- Vuetify Form -->
+            <!-- Product Form -->
             <v-form
                 v-if="!loadFailed"
                 ref="productForm"
@@ -479,33 +589,84 @@ async function save() {
                         <v-textarea
                             v-model="model.description"
                             label="Product description"
+                            placeholder="Write a detailed description of your product..."
                             variant="outlined"
                             rows="5"
                             auto-grow
-                            hint="Enter the full product description."
-                            persistent-hint
                         />
 
-                        <!-- Image Path -->
-                        <v-text-field
-                            v-model="model.imagePath"
-                            label="Product image path"
-                            variant="outlined"
-                            density="comfortable"
-                            maxlength="255"
-                            placeholder="images/products/product-name.jpg"
-                            :rules="[rules.maxImage]"
-                        />
+                        <!-- Image Upload -->
+                        <div class="mt-4">
 
-                        <!-- Image Description -->
-                        <v-text-field
-                            v-model="model.imageAlt"
-                            label="Product image description"
-                            variant="outlined"
-                            density="comfortable"
-                            maxlength="255"
-                            :rules="[rules.maxImage]"
-                        />
+                            <h2>Product image</h2>
+
+                            <v-file-input
+                                v-model="selectedImage"
+                                label="Choose product image"
+                                accept="image/jpeg,image/png,image/webp"
+                                variant="outlined"
+                                density="comfortable"
+                                prepend-icon="mdi-image"
+                                prepend-inner-icon="mdi-upload"
+                                show-size
+                                clearable
+                                @update:model-value="handleImageSelection"
+                            />
+
+                            <p class="small muted">
+                                Supported formats: JPG, PNG and WEBP.
+                                Maximum file size: 5 MB.
+                                The image will be uploaded to Mercury
+                                when you save the product.
+                            </p>
+
+                            <!-- Image Preview -->
+                            <div
+                                v-if="imagePreview"
+                                class="mt-3"
+                            >
+
+                                <p class="form-label">
+                                    Image preview
+                                </p>
+
+                                <img
+                                    :src="imagePreview"
+                                    :alt="model.imageAlt || model.name"
+                                    class="product-upload-preview"
+                                />
+
+                            </div>
+
+                            <v-alert
+                                v-else
+                                type="info"
+                                variant="tonal"
+                                density="compact"
+                            >
+                                No product image selected.
+                            </v-alert>
+
+                            <!-- Stored Image Path -->
+                            <v-text-field
+                                v-model="model.imagePath"
+                                label="Saved image path"
+                                variant="outlined"
+                                density="comfortable"
+                                readonly
+                                class="mt-3"
+                            />
+
+                            <!-- Image Alt -->
+                            <v-text-field
+                                v-model="model.imageAlt"
+                                label="Image description (alt text)"
+                                variant="outlined"
+                                density="comfortable"
+                                maxlength="255"
+                            />
+
+                        </div>
 
                     </div>
 
@@ -527,6 +688,10 @@ async function save() {
                                     {
                                         title: 'Published',
                                         value: 'published'
+                                    },
+                                    {
+                                        title: 'Archived',
+                                        value: 'archived'
                                     }
                                 ]"
                                 item-title="title"
@@ -556,7 +721,7 @@ async function save() {
                                 density="comfortable"
                             />
 
-                            <!-- Product Price -->
+                            <!-- Price -->
                             <v-text-field
                                 v-model.number="model.price"
                                 label="Price (MYR)"
@@ -569,7 +734,7 @@ async function save() {
                                 required
                             />
 
-                            <!-- Physical Product Stock -->
+                            <!-- Stock -->
                             <v-text-field
                                 v-if="model.type === 'physical'"
                                 v-model.number="model.stock"
@@ -586,7 +751,7 @@ async function save() {
                                 required
                             />
 
-                            <!-- Digital Product Information -->
+                            <!-- Digital Product Notice -->
                             <v-alert
                                 v-else
                                 type="info"
@@ -596,15 +761,6 @@ async function save() {
                                 Digital products use simulated
                                 stock of 999.
                             </v-alert>
-
-                            <p class="small muted mt-3">
-                                Image paths are saved in the
-                                existing image_path and image_alt
-                                database columns.
-
-                                Upload image files separately
-                                to the project images folder.
-                            </p>
 
                         </div>
 
@@ -652,3 +808,17 @@ async function save() {
 
     </div>
 </template>
+
+<style scoped>
+.product-upload-preview {
+    display: block;
+    width: 100%;
+    max-width: 360px;
+    max-height: 260px;
+    object-fit: contain;
+    border: 1px solid #dce3ec;
+    border-radius: 12px;
+    background: #f7f9fc;
+    padding: 8px;
+}
+</style>

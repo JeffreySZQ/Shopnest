@@ -8,7 +8,17 @@ async function request(endpoint, options = {}) {
     const headers = { ...(options.headers || {}) };
     let body = options.body;
 
-    if (body !== undefined && body !== null && typeof body !== 'string') {
+    
+    const isFormData =
+        typeof FormData !== 'undefined' &&
+        body instanceof FormData;
+
+    if (
+        body !== undefined &&
+        body !== null &&
+        typeof body !== 'string' &&
+        !isFormData
+    ) {
         headers['Content-Type'] = 'application/json';
         body = JSON.stringify(body);
     }
@@ -36,23 +46,47 @@ async function request(endpoint, options = {}) {
     return data;
 }
 
+
 export const api = {
     get(endpoint) {
         return request(endpoint, { method: 'GET' });
     },
+
     post(endpoint, body = {}) {
-        return request(endpoint, { method: 'POST', body });
+        return request(endpoint, {
+            method: 'POST',
+            body
+        });
     },
+
     put(endpoint, body = {}) {
-        return request(endpoint, { method: 'PUT', body });
+        return request(endpoint, {
+            method: 'PUT',
+            body
+        });
     },
+
     patch(endpoint, body = {}) {
-        return request(endpoint, { method: 'PATCH', body });
+        return request(endpoint, {
+            method: 'PATCH',
+            body
+        });
     },
+
     delete(endpoint) {
-        return request(endpoint, { method: 'DELETE' });
+        return request(endpoint, {
+            method: 'DELETE'
+        });
+    },
+
+    upload(endpoint, formData) {
+        return request(endpoint, {
+            method: 'POST',
+            body: formData
+        });
     }
 };
+
 
 export function setStoreUser(store, user) {
     if (user) {
