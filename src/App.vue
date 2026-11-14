@@ -1,3 +1,4 @@
+
 <script setup>
 import { onMounted } from 'vue';
 import { useStore } from '@/stores/shop.js';
@@ -8,5 +9,7 @@ onMounted(() => shop.init());
 </script>
 
 <template>
-    <RouterView />
+    <v-app>
+        <RouterView />
+    </v-app>
 </template>

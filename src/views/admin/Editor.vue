@@ -1,16 +1,37 @@
-<script setup>
-import { computed, reactive, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useStore } from '@/stores/shop.js';
-import { ArrowLeft, Save, History } from 'lucide-vue-next';
 
-const s = useStore(),
-    route = useRoute(),
-    router = useRouter();
+<script setup>
+import {
+    computed,
+    reactive,
+    ref,
+    watch
+} from 'vue';
+
+import {
+    useRoute,
+    useRouter
+} from 'vue-router';
+
+import { useStore } from '@/stores/shop.js';
+
+import {
+    ArrowLeft,
+    Save,
+    History
+} from 'lucide-vue-next';
+
+const s = useStore();
+const route = useRoute();
+const router = useRouter();
 
 const existing = computed(() =>
-    s.products.find(p => p.id === Number(route.params.id))
+    s.products.find(
+        p => p.id === Number(route.params.id)
+    )
 );
+
+const productForm = ref(null);
+const error = ref('');
 
 const model = reactive({
     name: '',
@@ -25,10 +46,45 @@ const model = reactive({
     featuresText: ''
 });
 
-const error = ref('');
+// Vuetify validation rules
+const rules = {
+    required: value =>
+        !!String(value ?? '').trim() ||
+        'This field is required.',
 
+    nonNegative: value =>
+        (
+            value !== '' &&
+            value !== null &&
+            value !== undefined &&
+            Number(value) >= 0
+        ) || 'Enter a zero or positive number.',
+
+    maxShort: value =>
+        String(value ?? '').length <= 160 ||
+        'Maximum 160 characters allowed.',
+
+    uniqueSku: value => {
+        const sku = String(value ?? '')
+            .trim()
+            .toLowerCase();
+
+        if (!sku) return true;
+
+        const duplicate = s.products.some(
+            p =>
+                p.sku.toLowerCase() === sku &&
+                p.id !== existing.value?.id
+        );
+
+        return !duplicate || 'SKU must be unique.';
+    }
+};
+
+// Load existing product or restored draft
 watch(
     [existing, () => route.query.draftVersion],
+
     ([p, draftVersion]) => {
         const draft = draftVersion
             ? s.getProductVersions(p?.id).find(
@@ -39,7 +95,10 @@ watch(
             : null;
 
         if (draft) {
-            p = { ...p, ...draft.snapshot };
+            p = {
+                ...p,
+                ...draft.snapshot
+            };
         }
 
         if (p) {
@@ -57,22 +116,25 @@ watch(
             });
         }
     },
+
     { immediate: true }
 );
 
-function save() {
+// Save product
+async function save() {
     error.value = '';
 
-    if (
-        !model.name.trim() ||
-        !model.sku.trim() ||
-        !model.short.trim()
-    ) {
-        error.value = 'Please complete the required fields.';
+    const result = await productForm.value.validate();
+
+    if (!result.valid) {
+        error.value = 'Please correct the highlighted fields.';
         return;
     }
 
-    if (Number(model.price) < 0 || Number(model.stock) < 0) {
+    if (
+        Number(model.price) < 0 ||
+        Number(model.stock) < 0
+    ) {
         error.value = 'Price and stock cannot be negative.';
         return;
     }
@@ -80,7 +142,8 @@ function save() {
     if (
         s.products.some(
             p =>
-                p.sku.toLowerCase() === model.sku.toLowerCase() &&
+                p.sku.toLowerCase() ===
+                    model.sku.toLowerCase() &&
                 p.id !== existing.value?.id
         )
     ) {
@@ -90,18 +153,24 @@ function save() {
 
     try {
         s.upsertProduct({
-            ...(existing.value ? { id: existing.value.id } : {}),
+            ...(existing.value
+                ? { id: existing.value.id }
+                : {}),
+
             name: model.name.trim(),
             sku: model.sku.trim(),
             category: model.category,
             type: model.type,
             price: Number(model.price),
+
             stock: model.type === 'digital'
                 ? 999
                 : Number(model.stock),
+
             status: model.status,
             short: model.short,
             description: model.description,
+
             features: model.featuresText
                 .split('\n')
                 .map(x => x.trim())
@@ -109,6 +178,7 @@ function save() {
         });
 
         router.push('/admin/products');
+
     } catch (e) {
         error.value = e.message;
     }
@@ -117,6 +187,8 @@ function save() {
 
 <template>
     <div>
+
+        <!-- Back Button -->
         <RouterLink
             class="back-link"
             to="/admin/products"
@@ -125,6 +197,7 @@ function save() {
             Products
         </RouterLink>
 
+        <!-- Page Heading -->
         <div class="admin-page-top">
             <div>
                 <p class="eyebrow">PRODUCT EDITOR</p>
@@ -138,232 +211,232 @@ function save() {
                 </p>
             </div>
 
-            <RouterLink
+            <v-btn
                 v-if="existing"
-                class="btn btn-outline-primary"
+                variant="outlined"
+                color="primary"
+                prepend-icon="mdi-history"
                 :to="'/admin/products/' + existing.id + '/versions'"
             >
-                <History :size="17" />
                 Version history & compare
-            </RouterLink>
+            </v-btn>
         </div>
 
-        <p
+        <!-- Restored Draft Notice -->
+        <v-alert
             v-if="route.query.draftVersion"
-            class="alert alert-info"
+            type="info"
+            variant="tonal"
+            class="mb-4"
         >
-            You are editing restored draft v{{ route.query.draftVersion }}.
-            Saving will create a new live product version. Review before saving.
-        </p>
+            You are editing restored draft
+            v{{ route.query.draftVersion }}.
+            Saving will create a new live product version.
+            Review before saving.
+        </v-alert>
 
-        <form
-            class="panel editor-form"
+        <!-- Vuetify Form -->
+        <v-form
+            ref="productForm"
+            class="panel editor-form admin-vuetify-form"
             @submit.prevent="save"
         >
+
             <div class="row g-4">
+
+                <!-- Product Details -->
                 <div class="col-lg-8">
+
                     <h2>Product details</h2>
 
-                    <label
-                        class="form-label"
-                        for="p-name"
-                    >
-                        Product name *
-                    </label>
-
-                    <input
-                        id="p-name"
+                    <v-text-field
                         v-model="model.name"
-                        class="form-control"
+                        label="Product name"
+                        variant="outlined"
+                        density="comfortable"
+                        :rules="[rules.required]"
                         required
                     />
 
-                    <div class="row g-3 mt-1">
-                        <div class="col-md-6">
-                            <label
-                                for="p-sku"
-                                class="form-label"
-                            >
-                                SKU *
-                            </label>
+                    <div class="row g-3">
 
-                            <input
-                                id="p-sku"
+                        <div class="col-md-6">
+                            <v-text-field
                                 v-model="model.sku"
-                                class="form-control"
+                                label="SKU"
+                                variant="outlined"
+                                density="comfortable"
+                                :rules="[
+                                    rules.required,
+                                    rules.uniqueSku
+                                ]"
                                 required
                             />
                         </div>
 
                         <div class="col-md-6">
-                            <label
-                                for="p-category"
-                                class="form-label"
-                            >
-                                Category
-                            </label>
-
-                            <select
-                                id="p-category"
+                            <v-select
                                 v-model="model.category"
-                                class="form-select"
-                            >
-                                <option>Leadership</option>
-                                <option>Personal Growth</option>
-                                <option>Coaching</option>
-                                <option>Digital Tools</option>
-                            </select>
+                                :items="[
+                                    'Leadership',
+                                    'Personal Growth',
+                                    'Coaching',
+                                    'Digital Tools'
+                                ]"
+                                label="Category"
+                                variant="outlined"
+                                density="comfortable"
+                            />
                         </div>
+
                     </div>
 
-                    <label
-                        for="p-short"
-                        class="form-label mt-3"
-                    >
-                        Short description *
-                    </label>
-
-                    <input
-                        id="p-short"
+                    <v-text-field
                         v-model="model.short"
-                        class="form-control"
+                        label="Short description"
+                        variant="outlined"
+                        density="comfortable"
+                        counter="160"
+                        :rules="[
+                            rules.required,
+                            rules.maxShort
+                        ]"
                         required
-                        maxlength="160"
                     />
 
-                    <label
-                        for="p-description"
-                        class="form-label mt-3"
-                    >
-                        Description
-                    </label>
-
-                    <textarea
-                        id="p-description"
+                    <v-textarea
                         v-model="model.description"
-                        class="form-control"
+                        label="Product description"
+                        variant="outlined"
                         rows="5"
-                    ></textarea>
+                        auto-grow
+                        hint="Enter the full product description."
+                        persistent-hint
+                    />
 
-                    <label
-                        for="p-features"
-                        class="form-label mt-3"
-                    >
-                        Features (one per line)
-                    </label>
-
-                    <textarea
-                        id="p-features"
+                    <v-textarea
                         v-model="model.featuresText"
-                        class="form-control"
+                        label="Features (one per line)"
+                        variant="outlined"
                         rows="4"
-                    ></textarea>
+                        auto-grow
+                    />
+
                 </div>
 
+                <!-- Store Settings -->
                 <div class="col-lg-4">
+
                     <div class="editor-side">
+
                         <h2>Store settings</h2>
 
-                        <label
-                            for="p-status"
-                            class="form-label"
-                        >
-                            Publication status
-                        </label>
-
-                        <select
-                            id="p-status"
+                        <v-select
                             v-model="model.status"
-                            class="form-select"
-                        >
-                            <option value="draft">Draft</option>
-                            <option value="published">Published</option>
-                        </select>
+                            :items="[
+                                {
+                                    title: 'Draft',
+                                    value: 'draft'
+                                },
+                                {
+                                    title: 'Published',
+                                    value: 'published'
+                                }
+                            ]"
+                            item-title="title"
+                            item-value="value"
+                            label="Publication status"
+                            variant="outlined"
+                            density="comfortable"
+                        />
 
-                        <label
-                            for="p-type"
-                            class="form-label mt-3"
-                        >
-                            Product type
-                        </label>
-
-                        <select
-                            id="p-type"
+                        <v-select
                             v-model="model.type"
-                            class="form-select"
-                        >
-                            <option value="physical">Physical</option>
-                            <option value="digital">Digital</option>
-                        </select>
+                            :items="[
+                                {
+                                    title: 'Physical',
+                                    value: 'physical'
+                                },
+                                {
+                                    title: 'Digital',
+                                    value: 'digital'
+                                }
+                            ]"
+                            item-title="title"
+                            item-value="value"
+                            label="Product type"
+                            variant="outlined"
+                            density="comfortable"
+                        />
 
-                        <label
-                            for="p-price"
-                            class="form-label mt-3"
-                        >
-                            Price (MYR)
-                        </label>
-
-                        <input
-                            id="p-price"
+                        <v-text-field
                             v-model.number="model.price"
+                            label="Price (MYR)"
                             type="number"
                             min="0"
                             step="0.01"
-                            class="form-control"
+                            variant="outlined"
+                            density="comfortable"
+                            :rules="[rules.nonNegative]"
                             required
                         />
 
-                        <template v-if="model.type === 'physical'">
-                            <label
-                                for="p-stock"
-                                class="form-label mt-3"
-                            >
-                                Available stock
-                            </label>
+                        <v-text-field
+                            v-if="model.type === 'physical'"
+                            v-model.number="model.stock"
+                            label="Available stock"
+                            type="number"
+                            min="0"
+                            step="1"
+                            variant="outlined"
+                            density="comfortable"
+                            :rules="[rules.nonNegative]"
+                            required
+                        />
 
-                            <input
-                                id="p-stock"
-                                v-model.number="model.stock"
-                                type="number"
-                                min="0"
-                                step="1"
-                                class="form-control"
-                                required
-                            />
-                        </template>
-
-                        <p class="small muted mt-3">
-                            Illustrations are generated using built-in visual
-                            styles. File uploads require backend storage.
+                        <p class="small muted">
+                            Illustrations are generated using built-in
+                            visual styles. File uploads require backend storage.
                         </p>
+
                     </div>
+
                 </div>
+
             </div>
 
-            <p
+            <!-- Error Message -->
+            <v-alert
                 v-if="error"
-                class="field-error mt-3"
-                role="alert"
+                type="error"
+                variant="tonal"
+                class="mt-3"
             >
                 {{ error }}
-            </p>
+            </v-alert>
 
+            <!-- Form Actions -->
             <div class="editor-actions">
-                <RouterLink
+
+                <v-btn
                     to="/admin/products"
-                    class="btn btn-outline-primary"
+                    variant="outlined"
+                    color="primary"
                 >
                     Cancel
-                </RouterLink>
+                </v-btn>
 
-                <button
+                <v-btn
                     type="submit"
-                    class="btn btn-primary"
+                    color="primary"
+                    prepend-icon="mdi-content-save"
                 >
-                    <Save :size="17" />
                     Save product
-                </button>
+                </v-btn>
+
             </div>
-        </form>
+
+        </v-form>
+
     </div>
 </template>

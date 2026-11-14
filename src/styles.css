@@ -1916,3 +1916,24 @@ img {
         font-size:.85rem
     }
 }
+
+.v-application {
+    font-family: inherit;
+    color: var(--ink);
+}
+
+.admin-vuetify-table .v-table__wrapper {
+    border-radius: 9px;
+}
+
+.admin-vuetify-table .v-table__wrapper > table {
+    min-width: 670px;
+}
+
+.admin-vuetify-form .v-field {
+    border-radius: 9px;
+}
+
+.admin-vuetify-form .v-btn {
+    text-transform: none;
+}
