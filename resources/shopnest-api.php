@@ -686,6 +686,57 @@ try {
                 apiFail('Product not found.', 404);
             }
             $p = apiProductPayload($input, $old);
+            // Check whether this product has an existing version history.
+            $history = apiRows(
+                'SELECT version_number
+                FROM product_versions
+                WHERE product_id = ?
+                LIMIT 1',
+                'i',
+                array($productId)
+            );
+
+            // Save the original product as version 1
+            // if no previous version exists.
+            if (!count($history)) {
+
+                $initialStatus = $old['status'] === 'published'
+                    ? 'live'
+                    : (
+                        $old['status'] === 'draft'
+                            ? 'draft'
+                            : 'historical'
+                    );
+
+                $initialSnapshot = json_encode(
+                    apiProductSnapshot($old),
+                    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+                );
+
+                apiExec(
+                    'INSERT INTO product_versions (
+                        product_id,
+                        version_number,
+                        created_by,
+                        actor_name,
+                        status,
+                        note,
+                        snapshot
+                    )
+                    VALUES (?, 1, ?, ?, ?, ?, ?)',
+
+                    'iissss',
+
+                    array(
+                        $productId,
+                        (int)$admin['id'],
+                        $admin['name'],
+                        $initialStatus,
+                        'Initial product version',
+                        $initialSnapshot
+                    )
+                );
+            }
             apiExec(
                 'UPDATE products SET sku = ?, name = ?, image_path = ?, image_alt = ?, category = ?, product_type = ?, price = ?, stock = ?, short_description = ?, description = ?, status = ?, updated_at = NOW() WHERE id = ?',
                 'ssssssdisssi',

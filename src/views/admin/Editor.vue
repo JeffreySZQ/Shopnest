@@ -1,35 +1,3 @@
-<<<<<<< HEAD
-
-<script setup>
-import {
-    computed,
-    reactive,
-    ref,
-    watch
-} from 'vue';
-
-import {
-    useRoute,
-    useRouter
-} from 'vue-router';
-
-import { useStore } from '@/stores/shop.js';
-
-import {
-    ArrowLeft,
-    Save,
-    History
-} from 'lucide-vue-next';
-
-const s = useStore();
-const route = useRoute();
-const router = useRouter();
-
-const existing = computed(() =>
-    s.products.find(
-        p => p.id === Number(route.params.id)
-    )
-=======
 <script setup>
 import { computed, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -40,7 +8,7 @@ import { api, refreshAdminData } from '@/services/shopApi.js';
 const s = useStore();
 const route = useRoute();
 const router = useRouter();
-const error = ref('');
+conszt error = ref('');
 const saving = ref(false);
 
 const existing = computed(() =>
@@ -49,7 +17,6 @@ const existing = computed(() =>
 
 const categories = computed(() =>
     Array.from(new Set(s.products.map(p => p.category).filter(Boolean))).sort()
->>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
 );
 
 const productForm = ref(null);
@@ -69,110 +36,6 @@ const model = reactive({
     imageAlt: ''
 });
 
-<<<<<<< HEAD
-// Vuetify validation rules
-const rules = {
-    required: value =>
-        !!String(value ?? '').trim() ||
-        'This field is required.',
-
-    nonNegative: value =>
-        (
-            value !== '' &&
-            value !== null &&
-            value !== undefined &&
-            Number(value) >= 0
-        ) || 'Enter a zero or positive number.',
-
-    maxShort: value =>
-        String(value ?? '').length <= 160 ||
-        'Maximum 160 characters allowed.',
-
-    uniqueSku: value => {
-        const sku = String(value ?? '')
-            .trim()
-            .toLowerCase();
-
-        if (!sku) return true;
-
-        const duplicate = s.products.some(
-            p =>
-                p.sku.toLowerCase() === sku &&
-                p.id !== existing.value?.id
-        );
-
-        return !duplicate || 'SKU must be unique.';
-    }
-};
-
-// Load existing product or restored draft
-watch(
-    [existing, () => route.query.draftVersion],
-
-    ([p, draftVersion]) => {
-        const draft = draftVersion
-            ? s.getProductVersions(p?.id).find(
-                v =>
-                    v.version === Number(draftVersion) &&
-                    v.status === 'draft'
-            )
-            : null;
-
-        if (draft) {
-            p = {
-                ...p,
-                ...draft.snapshot
-            };
-        }
-
-        if (p) {
-            Object.assign(model, {
-                name: p.name,
-                sku: p.sku,
-                category: p.category,
-                type: p.type,
-                price: p.price,
-                stock: p.stock,
-                status: p.status,
-                short: p.short || '',
-                description: p.description || '',
-                featuresText: (p.features || []).join('\n')
-            });
-        }
-    },
-
-    { immediate: true }
-);
-
-// Save product
-async function save() {
-    error.value = '';
-
-    const result = await productForm.value.validate();
-
-    if (!result.valid) {
-        error.value = 'Please correct the highlighted fields.';
-        return;
-    }
-
-    if (
-        Number(model.price) < 0 ||
-        Number(model.stock) < 0
-    ) {
-        error.value = 'Price and stock cannot be negative.';
-        return;
-    }
-
-    if (
-        s.products.some(
-            p =>
-                p.sku.toLowerCase() ===
-                    model.sku.toLowerCase() &&
-                p.id !== existing.value?.id
-        )
-    ) {
-        error.value = 'SKU must be unique.';
-=======
 async function loadEditor() {
     error.value = '';
     if (!route.params.id) {
@@ -181,18 +44,10 @@ async function loadEditor() {
             type: 'physical', price: 0, stock: 0, status: 'draft',
             short: '', description: '', imagePath: '', imageAlt: ''
         });
->>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
         return;
     }
 
     try {
-<<<<<<< HEAD
-        s.upsertProduct({
-            ...(existing.value
-                ? { id: existing.value.id }
-                : {}),
-
-=======
         const result = await api.get('/products/' + route.params.id);
         let product = result.product;
 
@@ -253,36 +108,18 @@ async function save() {
     saving.value = true;
     try {
         const payload = {
->>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
             name: model.name.trim(),
             sku: model.sku.trim(),
             category: model.category.trim(),
             type: model.type,
             price: Number(model.price),
-<<<<<<< HEAD
-
-            stock: model.type === 'digital'
-                ? 999
-                : Number(model.stock),
-
-=======
             stock: model.type === 'digital' ? 999 : Number(model.stock),
->>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
             status: model.status,
             short: model.short.trim(),
             description: model.description,
-<<<<<<< HEAD
-
-            features: model.featuresText
-                .split('\n')
-                .map(x => x.trim())
-                .filter(Boolean)
-        });
-=======
             imagePath: model.imagePath.trim(),
             imageAlt: model.imageAlt.trim() || model.name.trim()
         };
->>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
 
         if (route.params.id) {
             await api.put('/products/' + route.params.id, payload);
@@ -345,17 +182,9 @@ async function save() {
             variant="tonal"
             class="mb-4"
         >
-<<<<<<< HEAD
-            You are editing restored draft
-            v{{ route.query.draftVersion }}.
-            Saving will create a new live product version.
-            Review before saving.
-        </v-alert>
-=======
             You are editing restored draft v{{ route.query.draftVersion }}.
             Saving will create a new product version. Review before saving.
         </p>
->>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
 
         <!-- Vuetify Form -->
         <v-form
@@ -397,20 +226,6 @@ async function save() {
                         </div>
 
                         <div class="col-md-6">
-<<<<<<< HEAD
-                            <v-select
-                                v-model="model.category"
-                                :items="[
-                                    'Leadership',
-                                    'Personal Growth',
-                                    'Coaching',
-                                    'Digital Tools'
-                                ]"
-                                label="Category"
-                                variant="outlined"
-                                density="comfortable"
-                            />
-=======
                             <label
                                 for="p-category"
                                 class="form-label"
@@ -428,7 +243,6 @@ async function save() {
                             <datalist id="shopnest-categories">
                                 <option v-for="category in categories" :key="category" :value="category" />
                             </datalist>
->>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
                         </div>
 
                     </div>
@@ -456,16 +270,6 @@ async function save() {
                         persistent-hint
                     />
 
-<<<<<<< HEAD
-                    <v-textarea
-                        v-model="model.featuresText"
-                        label="Features (one per line)"
-                        variant="outlined"
-                        rows="4"
-                        auto-grow
-                    />
-
-=======
                     <label for="p-image-path" class="form-label mt-3">
                         Product image path
                     </label>
@@ -486,7 +290,6 @@ async function save() {
                         class="form-control"
                         maxlength="255"
                     />
->>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
                 </div>
 
                 <!-- Store Settings -->
@@ -559,11 +362,6 @@ async function save() {
                             required
                         />
 
-<<<<<<< HEAD
-                        <p class="small muted">
-                            Illustrations are generated using built-in
-                            visual styles. File uploads require backend storage.
-=======
                             <input
                                 id="p-stock"
                                 v-model.number="model.stock"
@@ -577,7 +375,6 @@ async function save() {
 
                         <p class="small muted mt-3">
                             Image paths are saved in the existing image_path and image_alt database columns. Upload image files separately to the project images folder.
->>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
                         </p>
 
                     </div>
@@ -609,21 +406,12 @@ async function save() {
 
                 <v-btn
                     type="submit"
-<<<<<<< HEAD
-                    color="primary"
-                    prepend-icon="mdi-content-save"
-                >
-                    Save product
-                </v-btn>
-
-=======
                     class="btn btn-primary"
                     :disabled="saving"
                 >
                     <Save :size="17" />
                     {{ saving ? 'Saving...' : 'Save product' }}
                 </button>
->>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
             </div>
 
         </v-form>
