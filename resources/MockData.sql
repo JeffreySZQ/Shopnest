@@ -1,4 +1,4 @@
-
+/* Products Table */
 INSERT INTO products (
     sku,
     name,
@@ -321,3 +321,698 @@ VALUES
     'Weekly Productivity Planner',
     'published'
 );
+
+/*Users Table */ 
+INSERT IGNORE INTO users
+(name, email, password_hash, role)
+VALUES
+(
+    'Alice Tan',
+    'alice@example.com',
+    '$2y$12$R7ecNGhiIF74ZQAsjsaQQu2qkstsCQ7YRqUY2gYDGQMEGI2DkKyYS', /* "ShopnestDemo123!" */
+    'customer'
+),
+(
+    'Daniel Lim',
+    'daniel@example.com',
+    '$2y$12$R7ecNGhiIF74ZQAsjsaQQu2qkstsCQ7YRqUY2gYDGQMEGI2DkKyYS',
+    'customer'
+),
+(
+    'Sarah Lee',
+    'sarah@example.com',
+    '$2y$12$R7ecNGhiIF74ZQAsjsaQQu2qkstsCQ7YRqUY2gYDGQMEGI2DkKyYS',
+    'customer'
+),
+(
+    'ShopNest Admin',
+    'admin@example.com',
+    '$2y$12$R7ecNGhiIF74ZQAsjsaQQu2qkstsCQ7YRqUY2gYDGQMEGI2DkKyYS',
+    'admin'
+);
+
+/* Carts Table */
+INSERT IGNORE INTO carts (user_id)
+SELECT id
+FROM users
+WHERE email IN (
+    'alice@example.com',
+    'daniel@example.com',
+    'sarah@example.com'
+);
+
+/* Cart Items Table */
+INSERT IGNORE INTO cart_items
+(cart_id, product_id, quantity)
+
+SELECT c.id, p.id, 2
+FROM carts c
+JOIN users u ON u.id = c.user_id
+JOIN products p ON p.sku = 'PG-PHY-001'
+WHERE u.email = 'alice@example.com';
+
+INSERT IGNORE INTO cart_items
+(cart_id, product_id, quantity)
+
+SELECT c.id, p.id, 1
+FROM carts c
+JOIN users u ON u.id = c.user_id
+JOIN products p ON p.sku = 'PRO-DIG-004'
+WHERE u.email = 'alice@example.com';
+
+INSERT IGNORE INTO cart_items
+(cart_id, product_id, quantity)
+
+SELECT c.id, p.id, 1
+FROM carts c
+JOIN users u ON u.id = c.user_id
+JOIN products p ON p.sku = 'LEA-PHY-001'
+WHERE u.email = 'daniel@example.com';
+
+INSERT IGNORE INTO cart_items
+(cart_id, product_id, quantity)
+
+SELECT c.id, p.id, 2
+FROM carts c
+JOIN users u ON u.id = c.user_id
+JOIN products p ON p.sku = 'COA-DIG-004'
+WHERE u.email = 'daniel@example.com';
+
+INSERT IGNORE INTO cart_items
+(cart_id, product_id, quantity)
+
+SELECT c.id, p.id, 1
+FROM carts c
+JOIN users u ON u.id = c.user_id
+JOIN products p ON p.sku = 'PRO-PHY-001'
+WHERE u.email = 'sarah@example.com';
+
+/* Wishlist Items Table */
+INSERT IGNORE INTO wishlist_items
+(user_id, product_id)
+
+SELECT u.id, p.id
+FROM users u
+JOIN products p ON p.sku = 'PG-PHY-002'
+WHERE u.email = 'alice@example.com';
+
+INSERT IGNORE INTO wishlist_items
+(user_id, product_id)
+
+SELECT u.id, p.id
+FROM users u
+JOIN products p ON p.sku = 'LEA-DIG-003'
+WHERE u.email = 'alice@example.com';
+
+INSERT IGNORE INTO wishlist_items
+(user_id, product_id)
+
+SELECT u.id, p.id
+FROM users u
+JOIN products p ON p.sku = 'PRO-PHY-001'
+WHERE u.email = 'alice@example.com';
+
+INSERT IGNORE INTO wishlist_items
+(user_id, product_id)
+
+SELECT u.id, p.id
+FROM users u
+JOIN products p ON p.sku = 'PG-PHY-003'
+WHERE u.email = 'daniel@example.com';
+
+INSERT IGNORE INTO wishlist_items
+(user_id, product_id)
+
+SELECT u.id, p.id
+FROM users u
+JOIN products p ON p.sku = 'COA-PHY-001'
+WHERE u.email = 'daniel@example.com';
+
+INSERT IGNORE INTO wishlist_items
+(user_id, product_id)
+
+SELECT u.id, p.id
+FROM users u
+JOIN products p ON p.sku = 'PRO-DIG-005'
+WHERE u.email = 'daniel@example.com';
+
+INSERT IGNORE INTO wishlist_items
+(user_id, product_id)
+
+SELECT u.id, p.id
+FROM users u
+JOIN products p ON p.sku = 'PG-PHY-001'
+WHERE u.email = 'sarah@example.com';
+
+INSERT IGNORE INTO wishlist_items
+(user_id, product_id)
+
+SELECT u.id, p.id
+FROM users u
+JOIN products p ON p.sku = 'COA-DIG-005'
+WHERE u.email = 'sarah@example.com';
+
+/* Product Likes Table */
+INSERT IGNORE INTO product_likes (user_id, product_id)
+
+SELECT u.id, p.id
+FROM users u
+JOIN products p ON p.sku = 'PG-PHY-001'
+WHERE u.email IN (
+    'alice@example.com',
+    'daniel@example.com',
+    'sarah@example.com'
+);
+
+INSERT IGNORE INTO product_likes (user_id, product_id)
+
+SELECT u.id, p.id
+FROM users u
+JOIN products p ON p.sku = 'LEA-PHY-001'
+WHERE u.email IN (
+    'alice@example.com',
+    'sarah@example.com'
+);
+
+INSERT IGNORE INTO product_likes (user_id, product_id)
+
+SELECT u.id, p.id
+FROM users u
+JOIN products p ON p.sku = 'COA-PHY-001'
+WHERE u.email IN (
+    'daniel@example.com',
+    'sarah@example.com'
+);
+
+INSERT IGNORE INTO product_likes (user_id, product_id)
+
+SELECT u.id, p.id
+FROM users u
+JOIN products p ON p.sku = 'PRO-PHY-001'
+WHERE u.email = 'alice@example.com';
+
+INSERT IGNORE INTO product_likes (user_id, product_id)
+
+SELECT u.id, p.id
+FROM users u
+JOIN products p ON p.sku = 'PRO-DIG-004'
+WHERE u.email = 'daniel@example.com';
+
+INSERT IGNORE INTO product_likes (user_id, product_id)
+
+SELECT u.id, p.id
+FROM users u
+JOIN products p ON p.sku = 'PG-PHY-003'
+WHERE u.email = 'sarah@example.com';
+
+/* Orders Table */
+INSERT IGNORE INTO orders (
+    order_number,
+    user_id,
+    customer_name,
+    customer_email,
+    shipping_address,
+    city,
+    postcode,
+    subtotal,
+    shipping_fee,
+    total,
+    payment_status,
+    fulfillment_status,
+    cancellation_status,
+    is_demo_payment
+)
+SELECT
+    'SN-DEMO-1001',
+    id,
+    'Alice Tan',
+    'alice@example.com',
+    '12 Jalan Example 1',
+    'Kuala Lumpur',
+    '50000',
+    80.00,
+    5.00,
+    85.00,
+    'paid',
+    'delivered',
+    'none',
+    1
+FROM users
+WHERE email = 'alice@example.com';
+
+
+INSERT IGNORE INTO orders (
+    order_number,
+    user_id,
+    customer_name,
+    customer_email,
+    shipping_address,
+    city,
+    postcode,
+    subtotal,
+    shipping_fee,
+    total,
+    payment_status,
+    fulfillment_status,
+    cancellation_status,
+    is_demo_payment
+)
+SELECT
+    'SN-DEMO-1002',
+    id,
+    'Daniel Lim',
+    'daniel@example.com',
+    '25 Jalan Example 2',
+    'Petaling Jaya',
+    '46000',
+    53.00,
+    5.00,
+    58.00,
+    'paid',
+    'shipped',
+    'none',
+    1
+FROM users
+WHERE email = 'daniel@example.com';
+
+
+INSERT IGNORE INTO orders (
+    order_number,
+    user_id,
+    customer_name,
+    customer_email,
+    shipping_address,
+    city,
+    postcode,
+    subtotal,
+    shipping_fee,
+    total,
+    payment_status,
+    fulfillment_status,
+    cancellation_status,
+    is_demo_payment
+)
+SELECT
+    'SN-DEMO-1003',
+    id,
+    'Sarah Lee',
+    'sarah@example.com',
+    '8 Jalan Example 3',
+    'Shah Alam',
+    '40000',
+    54.00,
+    5.00,
+    59.00,
+    'pending',
+    'processing',
+    'none',
+    1
+FROM users
+WHERE email = 'sarah@example.com';
+
+
+INSERT IGNORE INTO orders (
+    order_number,
+    user_id,
+    customer_name,
+    customer_email,
+    shipping_address,
+    city,
+    postcode,
+    subtotal,
+    shipping_fee,
+    total,
+    payment_status,
+    fulfillment_status,
+    cancellation_status,
+    is_demo_payment
+)
+SELECT
+    'SN-DEMO-1004',
+    id,
+    'Alice Tan',
+    'alice@example.com',
+    '12 Jalan Example 1',
+    'Kuala Lumpur',
+    '50000',
+    48.00,
+    5.00,
+    53.00,
+    'paid',
+    'delivered',
+    'none',
+    1
+FROM users
+WHERE email = 'alice@example.com';
+
+/* Order Items Table */
+INSERT INTO order_items (
+    order_id,
+    product_id,
+    product_name,
+    product_type,
+    unit_price,
+    quantity
+)
+SELECT
+    o.id, p.id, p.name, p.product_type, p.price, 2
+FROM orders o
+JOIN products p ON p.sku = 'PG-PHY-001'
+WHERE o.order_number = 'SN-DEMO-1001'
+AND NOT EXISTS (
+    SELECT 1 FROM order_items oi
+    WHERE oi.order_id = o.id
+    AND oi.product_id = p.id
+);
+
+
+INSERT INTO order_items (
+    order_id, product_id, product_name,
+    product_type, unit_price, quantity
+)
+SELECT
+    o.id, p.id, p.name, p.product_type, p.price, 1
+FROM orders o
+JOIN products p ON p.sku = 'PG-PHY-002'
+WHERE o.order_number = 'SN-DEMO-1001'
+AND NOT EXISTS (
+    SELECT 1 FROM order_items oi
+    WHERE oi.order_id = o.id
+    AND oi.product_id = p.id
+);
+
+
+INSERT INTO order_items (
+    order_id, product_id, product_name,
+    product_type, unit_price, quantity
+)
+SELECT
+    o.id, p.id, p.name, p.product_type, p.price, 1
+FROM orders o
+JOIN products p ON p.sku = 'LEA-PHY-001'
+WHERE o.order_number = 'SN-DEMO-1002'
+AND NOT EXISTS (
+    SELECT 1 FROM order_items oi
+    WHERE oi.order_id = o.id
+    AND oi.product_id = p.id
+);
+
+
+INSERT INTO order_items (
+    order_id, product_id, product_name,
+    product_type, unit_price, quantity
+)
+SELECT
+    o.id, p.id, p.name, p.product_type, p.price, 1
+FROM orders o
+JOIN products p ON p.sku = 'LEA-DIG-004'
+WHERE o.order_number = 'SN-DEMO-1002'
+AND NOT EXISTS (
+    SELECT 1 FROM order_items oi
+    WHERE oi.order_id = o.id
+    AND oi.product_id = p.id
+);
+
+
+INSERT INTO order_items (
+    order_id, product_id, product_name,
+    product_type, unit_price, quantity
+)
+SELECT
+    o.id, p.id, p.name, p.product_type, p.price, 1
+FROM orders o
+JOIN products p ON p.sku = 'COA-PHY-001'
+WHERE o.order_number = 'SN-DEMO-1003'
+AND NOT EXISTS (
+    SELECT 1 FROM order_items oi
+    WHERE oi.order_id = o.id
+    AND oi.product_id = p.id
+);
+
+
+INSERT INTO order_items (
+    order_id, product_id, product_name,
+    product_type, unit_price, quantity
+)
+SELECT
+    o.id, p.id, p.name, p.product_type, p.price, 1
+FROM orders o
+JOIN products p ON p.sku = 'COA-DIG-004'
+WHERE o.order_number = 'SN-DEMO-1003'
+AND NOT EXISTS (
+    SELECT 1 FROM order_items oi
+    WHERE oi.order_id = o.id
+    AND oi.product_id = p.id
+);
+
+
+INSERT INTO order_items (
+    order_id, product_id, product_name,
+    product_type, unit_price, quantity
+)
+SELECT
+    o.id, p.id, p.name, p.product_type, p.price, 1
+FROM orders o
+JOIN products p ON p.sku = 'PRO-PHY-001'
+WHERE o.order_number = 'SN-DEMO-1004'
+AND NOT EXISTS (
+    SELECT 1 FROM order_items oi
+    WHERE oi.order_id = o.id
+    AND oi.product_id = p.id
+);
+
+
+INSERT INTO order_items (
+    order_id, product_id, product_name,
+    product_type, unit_price, quantity
+)
+SELECT
+    o.id, p.id, p.name, p.product_type, p.price, 1
+FROM orders o
+JOIN products p ON p.sku = 'PRO-DIG-004'
+WHERE o.order_number = 'SN-DEMO-1004'
+AND NOT EXISTS (
+    SELECT 1 FROM order_items oi
+    WHERE oi.order_id = o.id
+    AND oi.product_id = p.id
+);
+
+INSERT INTO order_items (
+    order_id, product_id, product_name,
+    product_type, unit_price, quantity
+)
+SELECT
+    o.id, p.id, p.name, p.product_type, p.price, 1
+FROM orders o
+JOIN products p ON p.sku = 'PRO-DIG-005'
+WHERE o.order_number = 'SN-DEMO-1004'
+AND NOT EXISTS (
+    SELECT 1 FROM order_items oi
+    WHERE oi.order_id = o.id
+    AND oi.product_id = p.id
+);
+
+/* Product Versions Table */
+INSERT IGNORE INTO product_versions (
+    product_id,
+    version_number,
+    created_by,
+    actor_name,
+    status,
+    note,
+    snapshot
+)
+SELECT
+    p.id,
+    1,
+    u.id,
+    'ShopNest Admin',
+    'historical',
+    'Original product version',
+    '{"name":"Daily Reflection Journal","price":25.00,"stock":80,"status":"published"}'
+FROM products p
+JOIN users u ON u.email = 'admin@example.com'
+WHERE p.sku = 'PG-PHY-001';
+
+
+INSERT IGNORE INTO product_versions (
+    product_id,
+    version_number,
+    created_by,
+    actor_name,
+    status,
+    note,
+    snapshot
+)
+SELECT
+    p.id,
+    2,
+    u.id,
+    'ShopNest Admin',
+    'live',
+    'Updated product price',
+    '{"name":"Daily Reflection Journal","price":28.00,"stock":80,"status":"published"}'
+FROM products p
+JOIN users u ON u.email = 'admin@example.com'
+WHERE p.sku = 'PG-PHY-001';
+
+
+INSERT IGNORE INTO product_versions (
+    product_id,
+    version_number,
+    created_by,
+    actor_name,
+    status,
+    note,
+    snapshot
+)
+SELECT
+    p.id,
+    1,
+    u.id,
+    'ShopNest Admin',
+    'live',
+    'Initial product version',
+    '{"name":"Leadership Skills Workbook","price":38.00,"stock":60,"status":"published"}'
+FROM products p
+JOIN users u ON u.email = 'admin@example.com'
+WHERE p.sku = 'LEA-PHY-001';
+
+/* Activity Logs Table */
+INSERT INTO activity_logs (
+    actor_id,
+    actor_name,
+    action,
+    resource_type,
+    resource_id,
+    detail
+)
+SELECT
+    u.id,
+    u.name,
+    'Created product',
+    'product',
+    CAST(p.id AS CHAR),
+    'Created Daily Reflection Journal'
+FROM users u
+JOIN products p ON p.sku = 'PG-PHY-001'
+WHERE u.email = 'admin@example.com'
+AND NOT EXISTS (
+    SELECT 1
+    FROM activity_logs a
+    WHERE a.action = 'Created product'
+    AND a.resource_type = 'product'
+    AND CAST(a.resource_id AS UNSIGNED) = p.id
+    AND a.actor_id = u.id
+);
+
+
+INSERT INTO activity_logs (
+    actor_id,
+    actor_name,
+    action,
+    resource_type,
+    resource_id,
+    detail
+)
+SELECT
+    u.id,
+    u.name,
+    'Updated product',
+    'product',
+    CAST(p.id AS CHAR),
+    'Updated Daily Reflection Journal price'
+FROM users u
+JOIN products p ON p.sku = 'PG-PHY-001'
+WHERE u.email = 'admin@example.com'
+AND NOT EXISTS (
+    SELECT 1
+    FROM activity_logs a
+    WHERE a.action = 'Updated product'
+    AND a.resource_type = 'product'
+    AND CAST(a.resource_id AS UNSIGNED) = p.id
+    AND a.actor_id = u.id
+);
+
+
+INSERT INTO activity_logs (
+    actor_id,
+    actor_name,
+    action,
+    resource_type,
+    resource_id,
+    detail
+)
+SELECT
+    u.id,
+    u.name,
+    'Created product',
+    'product',
+    CAST(p.id AS CHAR),
+    'Created Leadership Skills Workbook'
+FROM users u
+JOIN products p ON p.sku = 'LEA-PHY-001'
+WHERE u.email = 'admin@example.com'
+AND NOT EXISTS (
+    SELECT 1
+    FROM activity_logs a
+    WHERE a.action = 'Created product'
+    AND a.resource_type = 'product'
+    AND CAST(a.resource_id AS UNSIGNED) = p.id
+    AND a.actor_id = u.id
+);
+
+
+INSERT INTO activity_logs (
+    actor_id,
+    actor_name,
+    action,
+    resource_type,
+    resource_id,
+    detail
+)
+SELECT
+    u.id,
+    u.name,
+    'Updated order',
+    'order',
+    CAST(o.id AS CHAR),
+    'Updated order fulfillment status'
+FROM users u
+JOIN orders o ON o.order_number = 'SN-DEMO-1002'
+WHERE u.email = 'admin@example.com'
+AND NOT EXISTS (
+    SELECT 1
+    FROM activity_logs a
+    WHERE a.action = 'Updated order'
+    AND a.resource_type = 'order'
+    AND CAST(a.resource_id AS UNSIGNED) = o.id
+    AND a.actor_id = u.id
+);
+
+
+INSERT INTO activity_logs (
+    actor_id,
+    actor_name,
+    action,
+    resource_type,
+    resource_id,
+    detail
+)
+SELECT
+    u.id,
+    u.name,
+    'Customer registration',
+    'user',
+    CAST(u.id AS CHAR),
+    'Customer account created'
+FROM users u
+WHERE u.email = 'alice@example.com'
+AND NOT EXISTS (
+    SELECT 1
+    FROM activity_logs a
+    WHERE a.action = 'Customer registration'
+    AND a.resource_type = 'user'
+    AND CAST(a.resource_id AS UNSIGNED) = u.id
+);
+
