@@ -56,15 +56,33 @@ function apiFail($message, $status) {
     throw new ShopNestApiException($message, $status);
 }
 
+
 function apiInput() {
+
+    $contentType = isset($_SERVER['CONTENT_TYPE'])
+        ? $_SERVER['CONTENT_TYPE']
+        : '';
+
+    // Handle image uploads using multipart/form-data.
+    if (stripos($contentType, 'multipart/form-data') === 0) {
+        return isset($_POST) && is_array($_POST)
+            ? $_POST
+            : array();
+    }
+
+    // Handle normal JSON API requests.
     $raw = file_get_contents('php://input');
+
     if ($raw === false || trim($raw) === '') {
         return array();
     }
+
     $data = json_decode($raw, true);
+
     if (!is_array($data)) {
         apiFail('Request body must be a valid JSON object.', 400);
     }
+
     return $data;
 }
 
@@ -996,6 +1014,121 @@ try {
     // Administrator endpoints
     if ($resource === 'admin') {
         $admin = apiRequireAdmin();
+
+    // ------------------------------------------------------------
+    // POST /admin/upload-image
+    // Upload a product image to Mercury.
+    // ------------------------------------------------------------
+
+    if ($id === 'upload-image' && $method === 'POST') {
+
+        // Only JPG, PNG and WEBP images are accepted.
+        if (!isset($_FILES['image'])) {
+            apiFail('Please select an image to upload.', 400);
+        }
+
+        $file = $_FILES['image'];
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+
+            if ($file['error'] === UPLOAD_ERR_INI_SIZE ||
+                $file['error'] === UPLOAD_ERR_FORM_SIZE) {
+
+                apiFail('Image exceeds the server upload limit.', 400);
+            }
+
+            apiFail('Image upload failed. Please try again.', 400);
+        }
+
+        // Maximum upload size: 5 MB.
+        $maxSize = 5 * 1024 * 1024;
+
+        if ((int)$file['size'] > $maxSize) {
+            apiFail('Image must not exceed 5 MB.', 400);
+        }
+
+        // Verify the actual image file.
+        $imageInfo = @getimagesize($file['tmp_name']);
+
+        if ($imageInfo === false) {
+            apiFail('The uploaded file is not a valid image.', 400);
+        }
+
+        // Prevent excessively large image dimensions.
+        if ($imageInfo[0] > 6000 || $imageInfo[1] > 6000) {
+            apiFail('Image dimensions must not exceed 6000 x 6000 pixels.', 400);
+        }
+
+        // Determine extension using the actual image type.
+        $extension = '';
+
+        if ($imageInfo[2] === IMAGETYPE_JPEG) {
+            $extension = 'jpg';
+
+        } elseif ($imageInfo[2] === IMAGETYPE_PNG) {
+            $extension = 'png';
+
+        } elseif (
+            defined('IMAGETYPE_WEBP') &&
+            $imageInfo[2] === constant('IMAGETYPE_WEBP')
+        ) {
+            $extension = 'webp';
+
+        } else {
+            apiFail('Only JPG, PNG and WEBP images are supported.', 400);
+        }
+
+        // Store images outside the resources folder.
+        // Result: /project/images/products/
+        $uploadDir = dirname(__DIR__)
+            . DIRECTORY_SEPARATOR . 'images'
+            . DIRECTORY_SEPARATOR . 'products';
+
+        // Create the directory if it does not exist.
+        if (!is_dir($uploadDir)) {
+
+            if (!mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)) {
+                apiFail('Unable to create the product image directory.', 500);
+            }
+        }
+
+        if (!is_writable($uploadDir)) {
+            apiFail('Product image directory is not writable.', 500);
+        }
+
+        // Generate a unique server-side filename.
+        $fileName = 'product-'
+            . date('YmdHis')
+            . '-'
+            . substr(md5(uniqid(mt_rand(), true)), 0, 12)
+            . '.'
+            . $extension;
+
+        $destination = $uploadDir
+            . DIRECTORY_SEPARATOR
+            . $fileName;
+
+        // Move the uploaded image into Mercury.
+        if (!move_uploaded_file($file['tmp_name'], $destination)) {
+            apiFail('Unable to save the uploaded image.', 500);
+        }
+
+        // Relative path stored in MySQL.
+        $imagePath = 'images/products/' . $fileName;
+
+        apiLog(
+            'Product image uploaded',
+            'Products',
+            $fileName,
+            'Product image uploaded successfully.'
+        );
+
+        apiRespond(array(
+            'success' => true,
+            'message' => 'Image uploaded successfully.',
+            'imagePath' => $imagePath
+        ), 201);
+    }
 
         if ($id === 'overview' && $method === 'GET') {
             $productStats = apiRows("SELECT COUNT(*) AS total, SUM(status = 'published') AS published FROM products", '', array());
