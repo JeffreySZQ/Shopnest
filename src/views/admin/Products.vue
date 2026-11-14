@@ -1,1 +1,237 @@
-<script setup>import {ref,computed} from 'vue';import {useStore} from '@/stores/shop.js';import {Search,Plus,Trash2,Pencil,History} from 'lucide-vue-next';import StatusBadge from '@/components/StatusBadge.vue';const s=useStore(),search=ref(''),type=ref(''),status=ref(''),page=ref(1),pageSize=7;const filtered=computed(()=>s.products.filter(p=>(!search.value||(p.name+' '+p.sku).toLowerCase().includes(search.value.toLowerCase()))&&(!type.value||p.type===type.value)&&(!status.value||p.status===status.value)));const totalPages=computed(()=>Math.max(1,Math.ceil(filtered.value.length/pageSize)));const shown=computed(()=>filtered.value.slice((page.value-1)*pageSize,page.value*pageSize));function remove(p){if(confirm(`Delete ${p.name}? This will remove the store listing, but historical orders remain.`))s.deleteProduct(p.id)}</script><template><div><div class="admin-page-top"><div><p class="eyebrow">CATALOG MANAGEMENT</p><h1>Products</h1><p class="muted">Manage listings, prices, visibility and stock.</p></div><RouterLink to="/admin/products/new" class="btn btn-primary"><Plus :size="17"/> Add product</RouterLink></div><div class="panel"><div class="toolbar"><label class="search-box"><Search :size="18"/><span class="visually-hidden">Search product name or SKU</span><input v-model="search" @input="page=1" placeholder="Search name or SKU"/></label><label><span class="visually-hidden">Filter type</span><select v-model="type" class="form-select" @change="page=1"><option value="">All types</option><option value="physical">Physical</option><option value="digital">Digital</option></select></label><label><span class="visually-hidden">Filter status</span><select v-model="status" class="form-select" @change="page=1"><option value="">All statuses</option><option value="published">Published</option><option value="draft">Draft</option></select></label></div><div class="table-responsive"><table class="table admin-table align-middle"><thead><tr><th scope="col">Product</th><th scope="col">Type</th><th scope="col">Price</th><th scope="col">Stock</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead><tbody><tr v-for="p in shown" :key="p.id"><td><strong>{{p.name}}</strong><div class="muted small">{{p.sku}}</div></td><td>{{p.type}}</td><td>RM {{p.price.toFixed(2)}}</td><td>{{p.type==='digital'?'Digital':p.stock}}</td><td><StatusBadge :value="p.status"/></td><td><div class="table-actions"><RouterLink class="btn btn-outline-primary btn-sm" :to="'/admin/products/'+p.id+'/edit'" :aria-label="'Edit '+p.name"><Pencil :size="15"/> Edit</RouterLink><RouterLink class="btn btn-outline-primary btn-sm" :to="'/admin/products/'+p.id+'/versions'" :aria-label="'Compare versions of '+p.name"><History :size="15"/> Versions</RouterLink><button class="btn btn-outline-danger btn-sm" :aria-label="'Delete '+p.name" @click="remove(p)"><Trash2 :size="15"/> Delete</button></div></td></tr></tbody></table></div><div v-if="!shown.length" class="empty-inline">No products match your filters.</div><div class="page-controls"><span>{{filtered.length}} products</span><button class="btn btn-outline-primary btn-sm" :disabled="page===1" @click="page--">Previous</button><span>{{page}} / {{totalPages}}</span><button class="btn btn-outline-primary btn-sm" :disabled="page>=totalPages" @click="page++">Next</button></div></div></div></template>
+<script setup>
+import { ref, computed } from 'vue';
+import { useStore } from '@/stores/shop.js';
+import {
+    Search,
+    Plus,
+    Trash2,
+    Pencil,
+    History
+} from 'lucide-vue-next';
+import StatusBadge from '@/components/StatusBadge.vue';
+
+const s = useStore(),
+    search = ref(''),
+    type = ref(''),
+    status = ref(''),
+    page = ref(1),
+    pageSize = 7;
+
+const filtered = computed(() =>
+    s.products.filter(p =>
+        (
+            !search.value ||
+            (p.name + ' ' + p.sku)
+                .toLowerCase()
+                .includes(search.value.toLowerCase())
+        ) &&
+        (!type.value || p.type === type.value) &&
+        (!status.value || p.status === status.value)
+    )
+);
+
+const totalPages = computed(() =>
+    Math.max(1, Math.ceil(filtered.value.length / pageSize))
+);
+
+const shown = computed(() =>
+    filtered.value.slice(
+        (page.value - 1) * pageSize,
+        page.value * pageSize
+    )
+);
+
+function remove(p) {
+    if (
+        confirm(
+            `Delete ${p.name}? This will remove the store listing, but historical orders remain.`
+        )
+    ) {
+        s.deleteProduct(p.id);
+    }
+}
+</script>
+
+<template>
+    <div>
+        <div class="admin-page-top">
+            <div>
+                <p class="eyebrow">CATALOG MANAGEMENT</p>
+
+                <h1>Products</h1>
+
+                <p class="muted">
+                    Manage listings, prices, visibility and stock.
+                </p>
+            </div>
+
+            <RouterLink
+                to="/admin/products/new"
+                class="btn btn-primary"
+            >
+                <Plus :size="17" />
+                Add product
+            </RouterLink>
+        </div>
+
+        <div class="panel">
+            <div class="toolbar">
+                <label class="search-box">
+                    <Search :size="18" />
+
+                    <span class="visually-hidden">
+                        Search product name or SKU
+                    </span>
+
+                    <input
+                        v-model="search"
+                        @input="page = 1"
+                        placeholder="Search name or SKU"
+                    />
+                </label>
+
+                <label>
+                    <span class="visually-hidden">
+                        Filter type
+                    </span>
+
+                    <select
+                        v-model="type"
+                        class="form-select"
+                        @change="page = 1"
+                    >
+                        <option value="">All types</option>
+                        <option value="physical">Physical</option>
+                        <option value="digital">Digital</option>
+                    </select>
+                </label>
+
+                <label>
+                    <span class="visually-hidden">
+                        Filter status
+                    </span>
+
+                    <select
+                        v-model="status"
+                        class="form-select"
+                        @change="page = 1"
+                    >
+                        <option value="">All statuses</option>
+                        <option value="published">Published</option>
+                        <option value="draft">Draft</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table admin-table align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">Product</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">Stock</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr
+                            v-for="p in shown"
+                            :key="p.id"
+                        >
+                            <td>
+                                <strong>{{ p.name }}</strong>
+
+                                <div class="muted small">
+                                    {{ p.sku }}
+                                </div>
+                            </td>
+
+                            <td>
+                                {{ p.type }}
+                            </td>
+
+                            <td>
+                                RM {{ p.price.toFixed(2) }}
+                            </td>
+
+                            <td>
+                                {{ p.type === 'digital' ? 'Digital' : p.stock }}
+                            </td>
+
+                            <td>
+                                <StatusBadge :value="p.status" />
+                            </td>
+
+                            <td>
+                                <div class="table-actions">
+                                    <RouterLink
+                                        class="btn btn-outline-primary btn-sm"
+                                        :to="'/admin/products/' + p.id + '/edit'"
+                                        :aria-label="'Edit ' + p.name"
+                                    >
+                                        <Pencil :size="15" />
+                                        Edit
+                                    </RouterLink>
+
+                                    <RouterLink
+                                        class="btn btn-outline-primary btn-sm"
+                                        :to="'/admin/products/' + p.id + '/versions'"
+                                        :aria-label="'Compare versions of ' + p.name"
+                                    >
+                                        <History :size="15" />
+                                        Versions
+                                    </RouterLink>
+
+                                    <button
+                                        class="btn btn-outline-danger btn-sm"
+                                        :aria-label="'Delete ' + p.name"
+                                        @click="remove(p)"
+                                    >
+                                        <Trash2 :size="15" />
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div
+                v-if="!shown.length"
+                class="empty-inline"
+            >
+                No products match your filters.
+            </div>
+
+            <div class="page-controls">
+                <span>
+                    {{ filtered.length }} products
+                </span>
+
+                <button
+                    class="btn btn-outline-primary btn-sm"
+                    :disabled="page === 1"
+                    @click="page--"
+                >
+                    Previous
+                </button>
+
+                <span>
+                    {{ page }} / {{ totalPages }}
+                </span>
+
+                <button
+                    class="btn btn-outline-primary btn-sm"
+                    :disabled="page >= totalPages"
+                    @click="page++"
+                >
+                    Next
+                </button>
+            </div>
+        </div>
+    </div>
+</template>

@@ -1,1 +1,32 @@
-<script setup>defineProps({product:{type:Object,required:true},large:Boolean});</script><template><div class="product-art" :class="['tone-'+(product.tone||'blue'),{large}]" role="img" :aria-label="product.name+' product illustration'"><div class="art-glow"></div><div class="art-object"><span>{{product.emoji||'📦'}}</span><div class="art-mini-label">SHOPNEST COLLECTION</div></div><span class="art-corner">SN / {{String(product.id).padStart(2,'0')}}</span></div></template>
+<script setup>
+defineProps({
+    product: {
+        type: Object,
+        required: true
+    },
+    large: Boolean
+});
+</script>
+
+<template>
+    <div
+        class="product-art"
+        :class="['tone-' + (product.tone || 'blue'), { large }]"
+        role="img"
+        :aria-label="product.name + ' product illustration'"
+    >
+        <div class="art-glow"></div>
+
+        <div class="art-object">
+            <span>{{ product.emoji || '📦' }}</span>
+
+            <div class="art-mini-label">
+                SHOPNEST COLLECTION
+            </div>
+        </div>
+
+        <span class="art-corner">
+            SN / {{ String(product.id).padStart(2, '0') }}
+        </span>
+    </div>
+</template>

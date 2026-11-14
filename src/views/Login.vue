@@ -1,1 +1,150 @@
-<script setup>import {ref} from 'vue';import {useRouter,useRoute} from 'vue-router';import {useStore} from '@/stores/shop.js';import {LogIn,ShieldCheck} from 'lucide-vue-next';const s=useStore(),router=useRouter(),route=useRoute(),email=ref(''),password=ref(''),error=ref(''),show=ref(false);function login(){try{const u=s.login(email.value,password.value);const dest=String(route.query.redirect||'');router.push(dest&&dest.startsWith('/')&&!dest.startsWith('//')?dest:(u.role==='admin'?'/admin':'/dashboard'))}catch(e){error.value=e.message}}function demo(role){email.value=role==='admin'?'admin@shopnest.test':'customer@shopnest.test';password.value=role==='admin'?'Admin123!':'Customer123!';login()}</script><template><div class="auth-wrap"><div class="auth-card"><div class="auth-icon"><LogIn :size="25"/></div><p class="eyebrow">WELCOME BACK</p><h1>Sign in to ShopNest</h1><p class="muted">Your thoughtful shopping experience continues here.</p><form @submit.prevent="login" class="mt-4"><label class="form-label" for="login-email">Email address</label><input id="login-email" v-model.trim="email" class="form-control" type="email" autocomplete="email" required placeholder="you@example.com"/><label class="form-label mt-3" for="login-password">Password</label><div class="password-row"><input id="login-password" v-model="password" class="form-control" :type="show?'text':'password'" autocomplete="current-password" required minlength="8"/><button type="button" class="btn btn-link" @click="show=!show">{{show?'Hide':'Show'}}</button></div><p v-if="error" class="field-error mt-2" role="alert">{{error}}</p><button class="btn btn-primary btn-lg w-100 mt-4" type="submit">Sign in</button></form><p class="text-center mt-3">New here? <RouterLink to="/signup">Create an account</RouterLink></p><div class="demo-panel"><div class="d-flex gap-2 align-items-center mb-2"><ShieldCheck :size="18"/><strong>Try the demo accounts</strong></div><p class="small muted">Instant access with sample data. These credentials are for demonstration only.</p><div class="d-flex flex-wrap gap-2"><button class="btn btn-outline-primary btn-sm" @click="demo('customer')">Sign in as customer</button><button class="btn btn-outline-primary btn-sm" @click="demo('admin')">Sign in as admin</button></div></div></div></div></template>
+<script setup>
+import { ref } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { useStore } from '@/stores/shop.js';
+import { LogIn, ShieldCheck } from 'lucide-vue-next';
+
+const s = useStore(),
+    router = useRouter(),
+    route = useRoute(),
+    email = ref(''),
+    password = ref(''),
+    error = ref(''),
+    show = ref(false);
+
+function login() {
+    try {
+        const u = s.login(email.value, password.value);
+
+        const dest = String(route.query.redirect || '');
+
+        router.push(
+            dest && dest.startsWith('/') && !dest.startsWith('//')
+                ? dest
+                : (u.role === 'admin' ? '/admin' : '/dashboard')
+        );
+    } catch (e) {
+        error.value = e.message;
+    }
+}
+
+function demo(role) {
+    email.value = role === 'admin'
+        ? 'admin@shopnest.test'
+        : 'customer@shopnest.test';
+
+    password.value = role === 'admin'
+        ? 'Admin123!'
+        : 'Customer123!';
+
+    login();
+}
+</script>
+
+<template>
+    <div class="auth-wrap">
+        <div class="auth-card">
+            <div class="auth-icon">
+                <LogIn :size="25" />
+            </div>
+
+            <p class="eyebrow">WELCOME BACK</p>
+
+            <h1>Sign in to ShopNest</h1>
+
+            <p class="muted">
+                Your thoughtful shopping experience continues here.
+            </p>
+
+            <form @submit.prevent="login" class="mt-4">
+                <label class="form-label" for="login-email">
+                    Email address
+                </label>
+
+                <input
+                    id="login-email"
+                    v-model.trim="email"
+                    class="form-control"
+                    type="email"
+                    autocomplete="email"
+                    required
+                    placeholder="you@example.com"
+                />
+
+                <label class="form-label mt-3" for="login-password">
+                    Password
+                </label>
+
+                <div class="password-row">
+                    <input
+                        id="login-password"
+                        v-model="password"
+                        class="form-control"
+                        :type="show ? 'text' : 'password'"
+                        autocomplete="current-password"
+                        required
+                        minlength="8"
+                    />
+
+                    <button
+                        type="button"
+                        class="btn btn-link"
+                        @click="show = !show"
+                    >
+                        {{ show ? 'Hide' : 'Show' }}
+                    </button>
+                </div>
+
+                <p
+                    v-if="error"
+                    class="field-error mt-2"
+                    role="alert"
+                >
+                    {{ error }}
+                </p>
+
+                <button
+                    class="btn btn-primary btn-lg w-100 mt-4"
+                    type="submit"
+                >
+                    Sign in
+                </button>
+            </form>
+
+            <p class="text-center mt-3">
+                New here?
+                <RouterLink to="/signup">
+                    Create an account
+                </RouterLink>
+            </p>
+
+            <div class="demo-panel">
+                <div class="d-flex gap-2 align-items-center mb-2">
+                    <ShieldCheck :size="18" />
+                    <strong>Try the demo accounts</strong>
+                </div>
+
+                <p class="small muted">
+                    Instant access with sample data. These credentials are
+                    for demonstration only.
+                </p>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <button
+                        class="btn btn-outline-primary btn-sm"
+                        @click="demo('customer')"
+                    >
+                        Sign in as customer
+                    </button>
+
+                    <button
+                        class="btn btn-outline-primary btn-sm"
+                        @click="demo('admin')"
+                    >
+                        Sign in as admin
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

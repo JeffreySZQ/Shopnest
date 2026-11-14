@@ -1,1 +1,178 @@
-<script setup>import {computed,ref,watch} from 'vue';import {useRoute,useRouter} from 'vue-router';import {Heart,ShoppingCart,ArrowLeft,Truck,Download,CheckCircle2,Minus,Plus} from 'lucide-vue-next';import {useStore} from '@/stores/shop.js';import ProductArt from '@/components/ProductArt.vue';import ProductCard from '@/components/ProductCard.vue';const s=useStore(),route=useRoute(),router=useRouter(),qty=ref(1),notice=ref('');const p=computed(()=>s.products.find(p=>p.id===Number(route.params.id)&&p.status==='published'));const related=computed(()=>s.published.filter(x=>x.category===p.value?.category&&x.id!==p.value?.id).slice(0,3));watch(()=>route.params.id,()=>{qty.value=1;notice.value='' });function add(){try{s.addCart(p.value.id,qty.value);notice.value='Added to cart!'}catch(e){notice.value=e.message}}function like(){try{s.toggleLike(p.value.id)}catch(e){router.push({name:'login',query:{redirect:route.fullPath}})}}</script><template><div class="container section" v-if="p"><RouterLink to="/catalog" class="back-link"><ArrowLeft :size="17"/> Back to all products</RouterLink><div class="product-detail-grid"><ProductArt :product="p" large/><div class="product-detail-copy"><span class="eyebrow">{{p.category.toUpperCase()}} / {{p.type.toUpperCase()}}</span><h1>{{p.name}}</h1><p class="muted product-detail-short">{{p.short}}</p><div class="d-flex align-items-center gap-3 mb-4"><strong class="detail-price">RM {{p.price.toFixed(2)}}</strong><span class="status-badge status-good">{{p.type==='digital'?'Digital delivery':p.stock>0?'In stock':'Out of stock'}}</span></div><p>{{p.description}}</p><div class="detail-benefits"><p><component :is="p.type==='digital'?Download:Truck" :size="19"/> {{p.type==='digital'?'Digital item — simulated access after purchase':'Physical item — demo shipping RM 8 per order'}}</p><p><CheckCircle2 :size="19"/> Created for practical everyday use</p></div><div class="detail-actions"><div class="qty-picker"><button :disabled="qty<=1" aria-label="Decrease quantity" @click="qty--"><Minus :size="17"/></button><span aria-live="polite">{{qty}}</span><button :disabled="p.type==='physical'&&qty>=p.stock" aria-label="Increase quantity" @click="qty++"><Plus :size="17"/></button></div><button class="btn btn-primary btn-lg flex-grow-1" :disabled="p.type==='physical'&&p.stock===0" @click="add"><ShoppingCart :size="18"/> Add to cart</button><button class="btn btn-outline-primary heart-action" :aria-label="'Like '+p.name" @click="like"><Heart :size="20" :fill="s.isLiked(p.id)?'currentColor':'none'"/></button></div><p v-if="notice" role="status" class="form-notice">{{notice}} <RouterLink v-if="notice==='Added to cart!'" to="/cart">View cart</RouterLink></p><div class="feature-list"><h2>What you'll find inside</h2><ul><li v-for="f in p.features" :key="f">{{f}}</li></ul></div></div></div><section v-if="related.length" class="mt-5"><div class="section-head"><h2>You might also like</h2></div><div class="row g-4"><div v-for="item in related" :key="item.id" class="col-12 col-sm-6 col-lg-4"><ProductCard :product="item"/></div></div></section></div><div v-else class="container section empty-state"><h1>Product not available</h1><RouterLink to="/catalog" class="btn btn-primary">Browse catalog</RouterLink></div></template>
+
+<script setup>
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import {
+  Heart,
+  ShoppingCart,
+  ArrowLeft,
+  Truck,
+  Download,
+  CheckCircle2,
+  Minus,
+  Plus
+} from 'lucide-vue-next'
+import { useStore } from '@/stores/shop.js'
+import ProductArt from '@/components/ProductArt.vue'
+import ProductCard from '@/components/ProductCard.vue'
+
+const s = useStore()
+const route = useRoute()
+const router = useRouter()
+const qty = ref(1)
+const notice = ref('')
+
+const p = computed(() =>
+  s.products.find(
+    product =>
+      product.id === Number(route.params.id) &&
+      product.status === 'published'
+  )
+)
+
+const related = computed(() =>
+  s.published
+    .filter(
+      product =>
+        product.category === p.value?.category &&
+        product.id !== p.value?.id
+    )
+    .slice(0, 3)
+)
+
+watch(
+  () => route.params.id,
+  () => {
+    qty.value = 1
+    notice.value = ''
+  }
+)
+
+function add() {
+  try {
+    s.addCart(p.value.id, qty.value)
+    notice.value = 'Added to cart!'
+  } catch (e) {
+    notice.value = e.message
+  }
+}
+
+function like() {
+  try {
+    s.toggleLike(p.value.id)
+  } catch (e) {
+    router.push({ name: 'login', query: { redirect: route.fullPath } })
+  }
+}
+</script>
+
+<template>
+  <div v-if="p" class="container section">
+    <RouterLink to="/catalog" class="back-link">
+      <ArrowLeft :size="17" />
+      Back to all products
+    </RouterLink>
+
+    <div class="product-detail-grid">
+      <ProductArt :product="p" large />
+
+      <div class="product-detail-copy">
+        <span class="eyebrow">
+          {{ p.category.toUpperCase() }} / {{ p.type.toUpperCase() }}
+        </span>
+
+        <h1>{{ p.name }}</h1>
+        <p class="muted product-detail-short">{{ p.short }}</p>
+
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <strong class="detail-price">RM {{ p.price.toFixed(2) }}</strong>
+          <span class="status-badge status-good">
+            {{ p.type === 'digital' ? 'Digital delivery' : p.stock > 0 ? 'In stock' : 'Out of stock' }}
+          </span>
+        </div>
+
+        <p>{{ p.description }}</p>
+
+        <div class="detail-benefits">
+          <p>
+            <component :is="p.type === 'digital' ? Download : Truck" :size="19" />
+            {{ p.type === 'digital'
+              ? 'Digital item — simulated access after purchase'
+              : 'Physical item — demo shipping RM 8 per order' }}
+          </p>
+          <p>
+            <CheckCircle2 :size="19" />
+            Created for practical everyday use
+          </p>
+        </div>
+
+        <div class="detail-actions">
+          <div class="qty-picker">
+            <button
+              :disabled="qty <= 1"
+              aria-label="Decrease quantity"
+              @click="qty--"
+            >
+              <Minus :size="17" />
+            </button>
+            <span aria-live="polite">{{ qty }}</span>
+            <button
+              :disabled="p.type === 'physical' && qty >= p.stock"
+              aria-label="Increase quantity"
+              @click="qty++"
+            >
+              <Plus :size="17" />
+            </button>
+          </div>
+
+          <button
+            class="btn btn-primary btn-lg flex-grow-1"
+            :disabled="p.type === 'physical' && p.stock === 0"
+            @click="add"
+          >
+            <ShoppingCart :size="18" />
+            Add to cart
+          </button>
+
+          <button
+            class="btn btn-outline-primary heart-action"
+            :aria-label="'Like ' + p.name"
+            @click="like"
+          >
+            <Heart :size="20" :fill="s.isLiked(p.id) ? 'currentColor' : 'none'" />
+          </button>
+        </div>
+
+        <p v-if="notice" role="status" class="form-notice">
+          {{ notice }}
+          <RouterLink v-if="notice === 'Added to cart!'" to="/cart">
+            View cart
+          </RouterLink>
+        </p>
+
+      </div>
+    </div>
+
+    <section v-if="related.length" class="mt-5">
+      <div class="section-head">
+        <h2>You might also like</h2>
+      </div>
+      <div class="row g-4">
+        <div
+          v-for="item in related"
+          :key="item.id"
+          class="col-12 col-sm-6 col-lg-4"
+        >
+          <ProductCard :product="item" />
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div v-else class="container section empty-state">
+    <h1>Product not available</h1>
+    <RouterLink to="/catalog" class="btn btn-primary">
+      Browse catalog
+    </RouterLink>
+  </div>
+</template>

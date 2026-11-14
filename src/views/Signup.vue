@@ -1,1 +1,135 @@
-<script setup>import {ref} from 'vue';import {useRouter} from 'vue-router';import {useStore} from '@/stores/shop.js';import {UserPlus} from 'lucide-vue-next';const s=useStore(),router=useRouter(),name=ref(''),email=ref(''),password=ref(''),confirm=ref(''),error=ref('');function submit(){error.value='';if(password.value!==confirm.value){error.value='Passwords do not match.';return}if(password.value.length<8){error.value='Password must contain at least 8 characters.';return}try{s.signup(name.value.trim(),email.value.trim(),password.value);router.push('/dashboard')}catch(e){error.value=e.message}}</script><template><div class="auth-wrap"><div class="auth-card"><div class="auth-icon"><UserPlus :size="25"/></div><p class="eyebrow">START YOUR JOURNEY</p><h1>Create your account</h1><p class="muted">Save favorites and keep your orders in one place.</p><form class="mt-4" @submit.prevent="submit"><label class="form-label" for="reg-name">Full name</label><input id="reg-name" v-model="name" class="form-control" autocomplete="name" required minlength="2"/><label class="form-label mt-3" for="reg-email">Email address</label><input id="reg-email" v-model="email" class="form-control" type="email" autocomplete="email" required/><label class="form-label mt-3" for="reg-pass">Password (at least 8 characters)</label><input id="reg-pass" v-model="password" class="form-control" type="password" autocomplete="new-password" minlength="8" required/><label class="form-label mt-3" for="reg-confirm">Confirm password</label><input id="reg-confirm" v-model="confirm" class="form-control" type="password" autocomplete="new-password" required/><p v-if="error" role="alert" class="field-error mt-2">{{error}}</p><button class="btn btn-primary btn-lg w-100 mt-4">Create account</button></form><p class="text-center mt-3">Already have an account? <RouterLink to="/login">Sign in</RouterLink></p><p class="small muted mt-4">Demo accounts and passwords are stored locally in your browser. Do not use real passwords.</p></div></div></template>
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useStore } from '@/stores/shop.js';
+import { UserPlus } from 'lucide-vue-next';
+
+const s = useStore(),
+    router = useRouter(),
+    name = ref(''),
+    email = ref(''),
+    password = ref(''),
+    confirm = ref(''),
+    error = ref('');
+
+function submit() {
+    error.value = '';
+
+    if (password.value !== confirm.value) {
+        error.value = 'Passwords do not match.';
+        return;
+    }
+
+    if (password.value.length < 8) {
+        error.value = 'Password must contain at least 8 characters.';
+        return;
+    }
+
+    try {
+        s.signup(
+            name.value.trim(),
+            email.value.trim(),
+            password.value
+        );
+
+        router.push('/dashboard');
+    } catch (e) {
+        error.value = e.message;
+    }
+}
+</script>
+
+<template>
+    <div class="auth-wrap">
+        <div class="auth-card">
+            <div class="auth-icon">
+                <UserPlus :size="25" />
+            </div>
+
+            <p class="eyebrow">START YOUR JOURNEY</p>
+
+            <h1>Create your account</h1>
+
+            <p class="muted">
+                Save favorites and keep your orders in one place.
+            </p>
+
+            <form class="mt-4" @submit.prevent="submit">
+                <label class="form-label" for="reg-name">
+                    Full name
+                </label>
+
+                <input
+                    id="reg-name"
+                    v-model="name"
+                    class="form-control"
+                    autocomplete="name"
+                    required
+                    minlength="2"
+                />
+
+                <label class="form-label mt-3" for="reg-email">
+                    Email address
+                </label>
+
+                <input
+                    id="reg-email"
+                    v-model="email"
+                    class="form-control"
+                    type="email"
+                    autocomplete="email"
+                    required
+                />
+
+                <label class="form-label mt-3" for="reg-pass">
+                    Password (at least 8 characters)
+                </label>
+
+                <input
+                    id="reg-pass"
+                    v-model="password"
+                    class="form-control"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                />
+
+                <label class="form-label mt-3" for="reg-confirm">
+                    Confirm password
+                </label>
+
+                <input
+                    id="reg-confirm"
+                    v-model="confirm"
+                    class="form-control"
+                    type="password"
+                    autocomplete="new-password"
+                    required
+                />
+
+                <p
+                    v-if="error"
+                    role="alert"
+                    class="field-error mt-2"
+                >
+                    {{ error }}
+                </p>
+
+                <button class="btn btn-primary btn-lg w-100 mt-4">
+                    Create account
+                </button>
+            </form>
+
+            <p class="text-center mt-3">
+                Already have an account?
+                <RouterLink to="/login">Sign in</RouterLink>
+            </p>
+
+            <p class="small muted mt-4">
+                Demo accounts and passwords are stored locally in your browser.
+                Do not use real passwords.
+            </p>
+        </div>
+    </div>
+</template>

@@ -1,1 +1,218 @@
-<script setup>import {computed,ref} from 'vue';import {useRoute} from 'vue-router';import {useStore} from '@/stores/shop.js';import {ArrowLeft,Save} from 'lucide-vue-next';import StatusBadge from '@/components/StatusBadge.vue';const s=useStore(),route=useRoute(),o=computed(()=>s.orders.find(o=>o.id===route.params.id)),newStatus=ref(''),notice=ref('');function decide(approve){try{s.resolveCancellation(o.value.id,approve);notice.value=approve?'Demo cancellation approved; simulated refund recorded.':'Cancellation request declined.'}catch(e){notice.value=e.message}}function update(){if(!newStatus.value)return;s.fulfill(o.value.id,newStatus.value);notice.value='Order fulfillment status updated.'}</script><template><div><RouterLink class="back-link" to="/admin/orders"><ArrowLeft :size="17"/> All orders</RouterLink><template v-if="o"><div class="admin-page-top"><div><p class="eyebrow">ORDER DETAIL</p><h1>{{o.id}}</h1><p class="muted">Placed {{new Date(o.createdAt).toLocaleString('en-MY')}}</p></div><div><StatusBadge :value="o.paymentStatus"/> <StatusBadge :value="o.fulfillmentStatus"/></div></div><div class="row g-4"><div class="col-lg-8"><div class="panel"><h2>Purchased items</h2><div v-for="i in o.items" :key="i.productId" class="order-row"><div><strong>{{i.name}}</strong><div class="muted small">{{i.type}} × {{i.quantity}}</div></div><strong>RM {{(i.price*i.quantity).toFixed(2)}}</strong></div><div class="summary-line mt-3"><span>Subtotal</span><strong>RM {{o.subtotal.toFixed(2)}}</strong></div><div class="summary-line"><span>Shipping</span><strong>RM {{o.shipping.toFixed(2)}}</strong></div><div class="summary-total"><span>Total (demo-paid)</span><strong>RM {{o.total.toFixed(2)}}</strong></div></div></div><div class="col-lg-4"><div class="panel"><h2>Customer</h2><p><strong>{{o.customer}}</strong><br/>{{o.email}}</p><p v-if="o.address">{{o.address}}<br/>{{o.postcode}} {{o.city}}</p><div v-if="o.cancellationStatus==='pending'" class="demo-panel"><h2>Cancellation requested</h2><p class="small muted">Customer requests cancellation and a demo refund. This does not send real money.</p><div class="d-flex flex-wrap gap-2"><button class="btn btn-outline-danger btn-sm" @click="decide(true)">Approve cancellation (demo)</button><button class="btn btn-outline-primary btn-sm" @click="decide(false)">Decline</button></div></div><hr/><h2>Fulfillment</h2><p class="small muted">Digital items have simulated delivery. Do not use these controls for real-world fulfillment.</p><label for="fulfillment-state" class="form-label">Update status</label><select id="fulfillment-state" v-model="newStatus" class="form-select"><option value="">Choose status</option><option value="processing">Processing</option><option value="shipped">Shipped</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option></select><button class="btn btn-primary w-100 mt-3" :disabled="!newStatus" @click="update"><Save :size="17"/> Save status</button><p v-if="notice" class="form-notice mt-2" role="status">{{notice}}</p></div></div></div></template><div v-else class="empty-state"><h1>Order not found</h1><RouterLink to="/admin/orders" class="btn btn-primary">Back to orders</RouterLink></div></div></template>
+<script setup>
+import { computed, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import { useStore } from '@/stores/shop.js';
+import { ArrowLeft, Save } from 'lucide-vue-next';
+import StatusBadge from '@/components/StatusBadge.vue';
+
+const s = useStore(),
+    route = useRoute(),
+    o = computed(() =>
+        s.orders.find(o => o.id === route.params.id)
+    ),
+    newStatus = ref(''),
+    notice = ref('');
+
+function decide(approve) {
+    try {
+        s.resolveCancellation(o.value.id, approve);
+
+        notice.value = approve
+            ? 'Demo cancellation approved; simulated refund recorded.'
+            : 'Cancellation request declined.';
+    } catch (e) {
+        notice.value = e.message;
+    }
+}
+
+function update() {
+    if (!newStatus.value) return;
+
+    s.fulfill(o.value.id, newStatus.value);
+
+    notice.value = 'Order fulfillment status updated.';
+}
+</script>
+
+<template>
+    <div>
+        <RouterLink
+            class="back-link"
+            to="/admin/orders"
+        >
+            <ArrowLeft :size="17" />
+            All orders
+        </RouterLink>
+
+        <template v-if="o">
+            <div class="admin-page-top">
+                <div>
+                    <p class="eyebrow">ORDER DETAIL</p>
+
+                    <h1>{{ o.id }}</h1>
+
+                    <p class="muted">
+                        Placed {{ new Date(o.createdAt).toLocaleString('en-MY') }}
+                    </p>
+                </div>
+
+                <div>
+                    <StatusBadge :value="o.paymentStatus" />
+                    <StatusBadge :value="o.fulfillmentStatus" />
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="panel">
+                        <h2>Purchased items</h2>
+
+                        <div
+                            v-for="i in o.items"
+                            :key="i.productId"
+                            class="order-row"
+                        >
+                            <div>
+                                <strong>{{ i.name }}</strong>
+
+                                <div class="muted small">
+                                    {{ i.type }} × {{ i.quantity }}
+                                </div>
+                            </div>
+
+                            <strong>
+                                RM {{ (i.price * i.quantity).toFixed(2) }}
+                            </strong>
+                        </div>
+
+                        <div class="summary-line mt-3">
+                            <span>Subtotal</span>
+
+                            <strong>
+                                RM {{ o.subtotal.toFixed(2) }}
+                            </strong>
+                        </div>
+
+                        <div class="summary-line">
+                            <span>Shipping</span>
+
+                            <strong>
+                                RM {{ o.shipping.toFixed(2) }}
+                            </strong>
+                        </div>
+
+                        <div class="summary-total">
+                            <span>Total (demo-paid)</span>
+
+                            <strong>
+                                RM {{ o.total.toFixed(2) }}
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="panel">
+                        <h2>Customer</h2>
+
+                        <p>
+                            <strong>{{ o.customer }}</strong>
+                            <br />
+                            {{ o.email }}
+                        </p>
+
+                        <p v-if="o.address">
+                            {{ o.address }}
+                            <br />
+                            {{ o.postcode }} {{ o.city }}
+                        </p>
+
+                        <div
+                            v-if="o.cancellationStatus === 'pending'"
+                            class="demo-panel"
+                        >
+                            <h2>Cancellation requested</h2>
+
+                            <p class="small muted">
+                                Customer requests cancellation and a demo refund.
+                                This does not send real money.
+                            </p>
+
+                            <div class="d-flex flex-wrap gap-2">
+                                <button
+                                    class="btn btn-outline-danger btn-sm"
+                                    @click="decide(true)"
+                                >
+                                    Approve cancellation (demo)
+                                </button>
+
+                                <button
+                                    class="btn btn-outline-primary btn-sm"
+                                    @click="decide(false)"
+                                >
+                                    Decline
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <h2>Fulfillment</h2>
+
+                        <p class="small muted">
+                            Digital items have simulated delivery.
+                            Do not use these controls for real-world fulfillment.
+                        </p>
+
+                        <label
+                            for="fulfillment-state"
+                            class="form-label"
+                        >
+                            Update status
+                        </label>
+
+                        <select
+                            id="fulfillment-state"
+                            v-model="newStatus"
+                            class="form-select"
+                        >
+                            <option value="">Choose status</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+
+                        <button
+                            class="btn btn-primary w-100 mt-3"
+                            :disabled="!newStatus"
+                            @click="update"
+                        >
+                            <Save :size="17" />
+                            Save status
+                        </button>
+
+                        <p
+                            v-if="notice"
+                            class="form-notice mt-2"
+                            role="status"
+                        >
+                            {{ notice }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <div v-else class="empty-state">
+            <h1>Order not found</h1>
+
+            <RouterLink
+                to="/admin/orders"
+                class="btn btn-primary"
+            >
+                Back to orders
+            </RouterLink>
+        </div>
+    </div>
+</template>

@@ -1,1 +1,13 @@
-<template><main class="container section empty-state"><p class="eyebrow">ERROR 404</p><h1>We couldn't find that page.</h1><p>Try heading back to the store.</p><RouterLink to="/" class="btn btn-primary">Go home</RouterLink></main></template>
+<template>
+    <main class="container section empty-state">
+        <p class="eyebrow">ERROR 404</p>
+
+        <h1>We couldn't find that page.</h1>
+
+        <p>Try heading back to the store.</p>
+
+        <RouterLink to="/" class="btn btn-primary">
+            Go home
+        </RouterLink>
+    </main>
+</template>
