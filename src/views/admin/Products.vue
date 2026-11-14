@@ -1,27 +1,27 @@
-<<<<<<< HEAD
 
-<script setup>
-import { ref, computed, watch } from 'vue';
-import { useStore } from '@/stores/shop.js';
-
-const s = useStore();
-
-=======
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from '@/stores/shop.js';
-import { Search, Plus, Trash2, Pencil, History } from 'lucide-vue-next';
-import StatusBadge from '@/components/StatusBadge.vue';
 import { api, refreshAdminData } from '@/services/shopApi.js';
 
 const s = useStore();
->>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
+
+// Product data and loading states
+const products = ref([]);
+const loading = ref(false);
+const deleting = ref(false);
+const error = ref('');
+
+// Search and filters
 const search = ref('');
 const type = ref('');
 const status = ref('');
+
+// Pagination
 const page = ref(1);
-<<<<<<< HEAD
 const pageSize = ref(7);
+
+const pageSizes = [7, 10, 15, 25];
 
 const typeOptions = [
     { title: 'All types', value: '' },
@@ -32,32 +32,79 @@ const typeOptions = [
 const statusOptions = [
     { title: 'All statuses', value: '' },
     { title: 'Published', value: 'published' },
-    { title: 'Draft', value: 'draft' }
+    { title: 'Draft', value: 'draft' },
+    { title: 'Archived', value: 'archived' }
 ];
 
-const pageSizes = [5, 7, 10, 20];
-=======
-const pageSize = 7;
-const error = ref('');
+// Reset pagination when filters change.
+function resetPage() {
+    page.value = 1;
+}
 
-onMounted(async () => {
+// Retrieve products from the PHP API.
+// Pinia is refreshed as a frontend cache.
+async function loadProducts() {
+    loading.value = true;
+    error.value = '';
+
     try {
-        await refreshAdminData(s);
+        const results = await refreshAdminData(s);
+
+        products.value = results[0].products.map(product => ({
+            ...product,
+            id: Number(product.id),
+            price: Number(product.price),
+            stock: Number(product.stock)
+        }));
+
+        // Keep the current page within the valid range.
+        const lastPage = Math.max(
+            1,
+            Math.ceil(filtered.value.length / pageSize.value)
+        );
+
+        if (page.value > lastPage) {
+            page.value = lastPage;
+        }
+
     } catch (e) {
         error.value = e.message;
+
+    } finally {
+        loading.value = false;
     }
+}
+
+// Filter products.
+const filtered = computed(() => {
+    const keyword = String(search.value || '')
+        .trim()
+        .toLowerCase();
+
+    return products.value.filter(product => {
+        const matchesSearch =
+            !keyword ||
+            (
+                product.name + ' ' + product.sku
+            ).toLowerCase().includes(keyword);
+
+        const matchesType =
+            !type.value ||
+            product.type === type.value;
+
+        const matchesStatus =
+            !status.value ||
+            product.status === status.value;
+
+        return (
+            matchesSearch &&
+            matchesType &&
+            matchesStatus
+        );
+    });
 });
->>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
 
-const filtered = computed(() =>
-    s.products.filter(p =>
-        (!search.value || (p.name + ' ' + p.sku).toLowerCase().includes(search.value.toLowerCase())) &&
-        (!type.value || p.type === type.value) &&
-        (!status.value || p.status === status.value)
-    )
-);
-
-<<<<<<< HEAD
+// Calculate pagination.
 const totalPages = computed(() =>
     Math.max(
         1,
@@ -65,53 +112,70 @@ const totalPages = computed(() =>
     )
 );
 
-const shown = computed(() =>
-    filtered.value.slice(
-        (page.value - 1) * pageSize.value,
-        page.value * pageSize.value
-    )
-);
+// Get products for the current page.
+const shown = computed(() => {
+    const start = (page.value - 1) * pageSize.value;
 
-watch(totalPages, total => {
-    if (page.value > total) {
-        page.value = total;
-    }
+    return filtered.value.slice(
+        start,
+        start + pageSize.value
+    );
 });
 
-function resetPage() {
-    page.value = 1;
+// Status badge colours.
+function statusColor(value) {
+    if (value === 'published') return 'success';
+    if (value === 'draft') return 'warning';
+    if (value === 'archived') return 'error';
+
+    return 'secondary';
 }
 
-function remove(p) {
-    if (
-        confirm(
-            `Delete ${p.name}? This will remove the store listing, but historical orders remain.`
-        )
-    ) {
-        s.deleteProduct(p.id);
-=======
-const totalPages = computed(() => Math.max(1, Math.ceil(filtered.value.length / pageSize)));
-const shown = computed(() => filtered.value.slice((page.value - 1) * pageSize, page.value * pageSize));
-
+// Archive product through the PHP API.
 async function remove(product) {
-    if (!confirm(`Archive ${product.name}? It will no longer appear in the public catalogue, and historical orders will be retained.`)) return;
+    if (product.status === 'archived') return;
+
+    const confirmed = window.confirm(
+        `Archive ${product.name}? ` +
+        'It will no longer appear in the public catalogue, ' +
+        'and historical orders will be retained.'
+    );
+
+    if (!confirmed) return;
+
     error.value = '';
+    deleting.value = true;
+
     try {
         await api.delete('/products/' + product.id);
-        await refreshAdminData(s);
+
+        // Reload database records after archiving.
+        await loadProducts();
+
+        page.value = Math.min(page.value, totalPages.value);
+
     } catch (e) {
         error.value = e.message;
->>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
+
+    } finally {
+        deleting.value = false;
     }
 }
+
+// Load database products when the page opens.
+onMounted(loadProducts);
 </script>
 
 <template>
     <div>
+
         <!-- Page Heading -->
         <div class="admin-page-top">
+
             <div>
-                <p class="eyebrow">CATALOG MANAGEMENT</p>
+                <p class="eyebrow">
+                    CATALOG MANAGEMENT
+                </p>
 
                 <h1>Products</h1>
 
@@ -127,21 +191,38 @@ async function remove(product) {
             >
                 Add product
             </v-btn>
+
         </div>
 
+        <!-- Product Management Panel -->
         <div class="panel">
-<<<<<<< HEAD
-=======
-            <p v-if="error" class="text-danger" role="alert">{{ error }}</p>
-            <div class="toolbar">
-                <label class="search-box">
-                    <Search :size="18" />
->>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
+
+            <!-- Loading Indicator -->
+            <v-progress-linear
+                v-if="loading"
+                indeterminate
+                color="primary"
+                class="mb-4"
+            />
+
+            <!-- Error Message -->
+            <v-alert
+                v-if="error"
+                type="error"
+                variant="tonal"
+                closable
+                class="mb-4"
+                @click:close="error = ''"
+            >
+                {{ error }}
+            </v-alert>
 
             <!-- Search and Filters -->
             <div class="row g-3 align-items-center mb-4">
 
+                <!-- Search -->
                 <div class="col-12 col-lg-5">
+
                     <v-text-field
                         v-model="search"
                         label="Search product name or SKU"
@@ -152,9 +233,12 @@ async function remove(product) {
                         hide-details
                         @update:model-value="resetPage"
                     />
+
                 </div>
 
+                <!-- Product Type -->
                 <div class="col-6 col-lg-3">
+
                     <v-select
                         v-model="type"
                         :items="typeOptions"
@@ -166,9 +250,12 @@ async function remove(product) {
                         hide-details
                         @update:model-value="resetPage"
                     />
+
                 </div>
 
+                <!-- Status -->
                 <div class="col-6 col-lg-2">
+
                     <v-select
                         v-model="status"
                         :items="statusOptions"
@@ -180,9 +267,12 @@ async function remove(product) {
                         hide-details
                         @update:model-value="resetPage"
                     />
+
                 </div>
 
+                <!-- Rows Per Page -->
                 <div class="col-6 col-lg-2">
+
                     <v-select
                         v-model="pageSize"
                         :items="pageSizes"
@@ -192,124 +282,135 @@ async function remove(product) {
                         hide-details
                         @update:model-value="resetPage"
                     />
+
                 </div>
 
             </div>
 
             <!-- Product Table -->
             <div class="table-responsive">
+
                 <v-table
                     class="admin-table admin-vuetify-table"
                     density="comfortable"
                 >
+
                     <thead>
                         <tr>
-                            <th>Product</th>
-                            <th>Type</th>
-                            <th>Price</th>
-                            <th>Stock</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th scope="col">Product</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">Stock</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Actions</th>
                         </tr>
                     </thead>
 
                     <tbody>
+
                         <tr
-                            v-for="p in shown"
-                            :key="p.id"
+                            v-for="product in shown"
+                            :key="product.id"
                         >
+
+                            <!-- Product Information -->
                             <td>
-                                <strong>{{ p.name }}</strong>
+                                <strong>
+                                    {{ product.name }}
+                                </strong>
 
                                 <div class="small text-medium-emphasis">
-                                    {{ p.sku }}
+                                    {{ product.sku }}
                                 </div>
                             </td>
 
+                            <!-- Product Type -->
                             <td>
-                                {{ p.type }}
+                                {{ product.type }}
                             </td>
 
+                            <!-- Price -->
                             <td>
-                                RM {{ p.price.toFixed(2) }}
+                                RM {{ product.price.toFixed(2) }}
                             </td>
 
+                            <!-- Stock -->
                             <td>
                                 {{
-                                    p.type === 'digital'
+                                    product.type === 'digital'
                                         ? 'Digital'
-                                        : p.stock
+                                        : product.stock
                                 }}
                             </td>
 
+                            <!-- Status -->
                             <td>
                                 <v-chip
                                     size="small"
                                     variant="tonal"
-                                    :color="
-                                        p.status === 'published'
-                                            ? 'success'
-                                            : 'warning'
-                                    "
+                                    :color="statusColor(product.status)"
                                 >
-                                    {{ p.status }}
+                                    {{ product.status }}
                                 </v-chip>
                             </td>
 
+                            <!-- Actions -->
                             <td>
+
                                 <div class="table-actions flex-wrap">
 
+                                    <!-- Edit -->
                                     <v-btn
                                         size="small"
                                         variant="outlined"
                                         color="primary"
                                         prepend-icon="mdi-pencil"
-                                        :to="'/admin/products/' + p.id + '/edit'"
+                                        :to="'/admin/products/' + product.id + '/edit'"
                                     >
                                         Edit
                                     </v-btn>
 
+                                    <!-- Version History -->
                                     <v-btn
                                         size="small"
                                         variant="outlined"
                                         color="primary"
                                         prepend-icon="mdi-history"
-                                        :to="'/admin/products/' + p.id + '/versions'"
+                                        :to="'/admin/products/' + product.id + '/versions'"
                                     >
                                         Versions
                                     </v-btn>
 
-<<<<<<< HEAD
+                                    <!-- Archive -->
                                     <v-btn
                                         size="small"
                                         variant="outlined"
                                         color="error"
-                                        prepend-icon="mdi-delete"
-                                        @click="remove(p)"
+                                        prepend-icon="mdi-archive"
+                                        :disabled="
+                                            product.status === 'archived' ||
+                                            deleting
+                                        "
+                                        @click="remove(product)"
                                     >
-                                        Delete
+                                        Archive
                                     </v-btn>
 
-=======
-                                    <button
-                                        class="btn btn-outline-danger btn-sm"
-                                        :aria-label="'Archive ' + p.name"
-                                        @click="remove(p)"
-                                    >
-                                        <Trash2 :size="15" />
-                                        Archive
-                                    </button>
->>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
                                 </div>
+
                             </td>
+
                         </tr>
+
                     </tbody>
+
                 </v-table>
+
             </div>
 
             <!-- Empty State -->
             <v-alert
-                v-if="!shown.length"
+                v-if="!loading && !shown.length"
                 type="info"
                 variant="tonal"
                 class="mt-4"
@@ -318,7 +419,9 @@ async function remove(product) {
             </v-alert>
 
             <!-- Pagination -->
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mt-4">
+            <div
+                class="d-flex align-items-center justify-content-between flex-wrap gap-3 mt-4"
+            >
 
                 <span class="small text-medium-emphasis">
                     {{ filtered.length }} products found
@@ -340,5 +443,6 @@ async function remove(product) {
             </div>
 
         </div>
+
     </div>
 </template>

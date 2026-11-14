@@ -1,99 +1,516 @@
-<<<<<<< HEAD
-# Shopnest
-=======
-# ShopNest — Vue 3 E-Commerce Demo
 
-A complete **frontend demo** for the requested ecommerce pages. Original design inspired only by the functionality of the supplied reference, not a replica. This is a **student prototype** with browser localStorage persistence; it does **not** include a backend database, real payment, email delivery or production-grade authentication.
+# ShopNest - E-Commerce Web Application
 
-## Requirements
+ShopNest is a student e-commerce web application developed using Vue 3, Bootstrap, Vuetify, PHP and MySQL.
 
-- Node.js 20.19+ or 22.12+ (recommended: current LTS)
+The application provides a shopping experience for customers and a management dashboard for administrators.
+
+Product information, customer accounts, shopping carts, orders and product version history are managed through a PHP REST API connected to a MariaDB database.
+
+---
+
+## 1. Technology Stack
+
+### Frontend
+- Vue 3
+- JavaScript
+- Vite
+- Vue Router
+- Pinia
+- Bootstrap 5
+- Vuetify 3
+- Material Design Icons
+- Lucide Vue Next
+
+### Backend
+- PHP
+- PHP MySQLi
+- REST API
+- MariaDB / MySQL
+- PHP Sessions
+- JSON data exchange
+
+### Additional Libraries
+- jsPDF
+- jsPDF AutoTable
+
+---
+
+## 2. System Architecture
+
+ShopNest uses a frontend and backend architecture.
+
+The frontend communicates with the PHP REST API using JavaScript fetch requests.
+
+The PHP API processes requests, validates information and communicates with the MariaDB database.
+
+### Application flow
+
+    Customer / Administrator
+              |
+              v
+    Vue 3 Frontend
+              |
+              v
+    Vue Router + Pinia
+              |
+              v
+    shopApi.js
+              |
+              v
+    JavaScript fetch()
+              |
+              v
+    PHP REST API
+              |
+              v
+    MariaDB Database
+
+### Data Management
+
+- MariaDB is the permanent source of application data.
+- PHP handles database operations and server-side validation.
+- Pinia manages reactive frontend state and cached data.
+- JavaScript fetch communicates with the REST API.
+- PHP sessions maintain authenticated user information.
+
+---
+
+## 3. Main Features
+
+### Customer Features
+
+- Browse published products.
+- Search products by name and SKU.
+- Filter products by category and type.
+- Sort products.
+- View product details.
+- Add products to shopping cart.
+- Update shopping cart quantities.
+- Add products to wishlist.
+- Register customer accounts.
+- Sign in and sign out.
+- Complete simulated checkout.
+- View order confirmation.
+- View purchase history.
+- Request order cancellation.
+- Download PDF receipts.
+- View purchased digital products.
+
+### Administrator Features
+
+- Administrator authentication.
+- View store dashboard.
+- View sales and order information.
+- View product listings.
+- Create new products.
+- Update existing products.
+- Archive products.
+- Manage product prices and stock.
+- Change publication status.
+- View product version history.
+- Compare product versions.
+- Restore earlier product versions as drafts.
+- View customer orders.
+- Update order fulfillment status.
+- Review cancellation requests.
+- View activity logs.
+
+### Product Version Control
+
+ShopNest includes database-backed product version history.
+
+Each product can have multiple versions.
+
+The system supports:
+
+- Recording product snapshots.
+- Tracking product changes.
+- Comparing earlier and newer versions.
+- Identifying changed fields.
+- Restoring an earlier version as a new draft.
+- Preserving historical product information.
+
+Restoring an earlier version does not immediately overwrite the published product. Administrators must review and save the restored draft.
+
+---
+
+## 4. Project Structure
+
+    ShopNest/
+    |
+    |-- public/
+    |
+    |-- resources/
+    |   |
+    |   |-- apis.php
+    |   |-- shopnest-api.php
+    |   |-- ShopnestTable.sql
+    |   |-- MockData.sql
+    |   |-- db-config.example.php
+    |   |-- db-config.php
+    |
+    |-- src/
+    |   |
+    |   |-- components/
+    |   |
+    |   |-- data/
+    |   |
+    |   |-- layouts/
+    |   |
+    |   |-- router/
+    |   |
+    |   |-- services/
+    |   |   |
+    |   |   |-- shopApi.js
+    |   |
+    |   |-- stores/
+    |   |
+    |   |-- views/
+    |   |   |
+    |   |   |-- admin/
+    |   |
+    |   |-- main.js
+    |   |-- App.vue
+    |   |-- styles.css
+    |
+    |-- index.html
+    |-- package.json
+    |-- vite.config.js
+    |-- README.md
+    |-- .gitignore
+
+Note:
+
+- `apis.php` is a small PHP wrapper that loads `shopnest-api.php`.
+- `shopnest-api.php` contains the main REST API implementation.
+- `shopApi.js` handles frontend API requests.
+- `db-config.php` contains private database credentials and must not be committed to GitHub.
+
+---
+
+## 5. Requirements
+
+### Frontend
+
+- Node.js 20.19+ or 22.12+
 - npm
 
-## Quick start
+### Backend
 
-```bash
-npm install
-npm run dev
-```
+- PHP with MySQLi support.
+- PHP Sessions.
+- JSON support.
+- MariaDB / MySQL database.
+- Database credentials provided by the university hosting environment.
 
-Open the URL printed by Vite (often `http://localhost:5173`).
+The API source is written to support the PHP 5.4.16 environment reported by the Mercury deployment.
 
-## Demo accounts
+---
 
-| Role | Email | Password |
+## 6. Installation and Local Development
+
+### Step 1: Clone the repository
+
+    git clone https://github.com/JeffreySZQ/Shopnest.git
+
+### Step 2: Enter the project directory
+
+    cd Shopnest
+
+### Step 3: Install dependencies
+
+    npm install
+
+### Step 4: Start the development server
+
+    npm run dev
+
+Open the local URL displayed by Vite.
+
+### Development API Configuration
+
+The development server uses the proxy configured in `vite.config.js`.
+
+Requests made to:
+
+    /api
+
+are forwarded to the Mercury PHP API.
+
+The current development proxy targets the Mercury database.
+
+Important:
+
+Local development requests may therefore modify the deployed database. Use test products and test accounts when experimenting with Create, Update and Delete operations.
+
+---
+
+## 7. Database Setup
+
+ShopNest uses MariaDB / MySQL for permanent data storage.
+
+### Step 1: Create or select your assigned database
+
+Use the database account and database name provided by the university.
+
+### Step 2: Create database tables
+
+Import:
+
+    resources/ShopnestTable.sql
+
+This creates the database tables required by ShopNest.
+
+### Step 3: Insert demonstration data
+
+Import:
+
+    resources/MockData.sql
+
+This inserts sample products and demonstration records.
+
+Import the schema and seed data in the correct order, and avoid importing the seed data repeatedly into an existing database.
+
+Back up existing data before running database scripts again.
+
+### Step 4: Configure database credentials
+
+Create:
+
+    resources/db-config.php
+
+Use the following structure:
+
+    <?php
+
+    return array(
+        'host' => 'feenix-mariadb.swin.edu.au',
+        'username' => 'YOUR_DATABASE_USERNAME',
+        'password' => 'YOUR_DATABASE_PASSWORD',
+        'database' => 'YOUR_DATABASE_NAME'
+    );
+
+    ?>
+
+Replace the placeholders with your assigned database credentials.
+
+Never publish this file or its actual credentials on GitHub.
+
+---
+
+## 8. REST API
+
+The main API implementation is:
+
+    resources/shopnest-api.php
+
+The frontend communicates with the API through:
+
+    src/services/shopApi.js
+
+The API supports JSON requests and responses.
+
+### Main API Operations
+
+| HTTP Method | Operation | Description |
 |---|---|---|
-| Customer | `customer@shopnest.test` | `Customer123!` |
-| Admin | `admin@shopnest.test` | `Admin123!` |
+| GET | Retrieve | Retrieve products and other records |
+| POST | Create | Register accounts, create products and orders |
+| PUT | Update | Update product information |
+| PATCH | Partial update | Update selected information such as order status |
+| DELETE | Archive / Remove | Archive products or remove cart items |
 
-On the Login screen, click the relevant **Sign in as ...** button. You can also create a demo customer account. **Never use a real password or sensitive information** in this demo: all account records, including plaintext demo passwords, are kept in browser localStorage.
+### Product Endpoints
 
-## Included pages
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | /products | Retrieve published products |
+| GET | /products/{id} | Retrieve product details |
+| POST | /products | Create a product |
+| PUT | /products/{id} | Update a product |
+| DELETE | /products/{id} | Archive a product |
+| GET | /admin/products | Retrieve administrator product listings |
+| GET | /admin/products/{id}/versions | Retrieve product version history |
+| POST | /admin/products/{id}/restore/{version} | Restore a version as a draft |
 
-- Home `/`
-- Login `/login`; Signup `/signup`
-- Catalog `/catalog`; Product details `/products/:id`
-- Cart `/cart`; Checkout `/checkout`; Confirmation `/order-confirmed/:id`
-- User dashboard `/dashboard`; Purchase history `/orders`; Order details `/orders/:id`
-- Admin overview `/admin`; Products `/admin/products`; Add `/admin/products/new`; Edit `/admin/products/:id/edit`
-- Admin orders `/admin/orders`; Admin order detail `/admin/orders/:id`; Activity log `/admin/activity`
-- Fallback 404
+### Other API Features
 
-## Working demo features
+- User registration and authentication.
+- Session restoration.
+- Shopping cart operations.
+- Product likes.
+- Checkout.
+- Customer order retrieval.
+- Order cancellation.
+- Administrator order management.
+- Activity logging.
+- Dashboard statistics.
 
-- Search, combined filters, sort, pagination with URL query synchronization
-- Product likes (signed-in only), cart updates and browser persistence
-- Register/sign in as demo user; role-gated route navigation (**not real server authorization**)
-- Responsive customer/store/admin layouts, semantic forms and basic keyboard accessibility
-- Simulated checkout and order confirmation; purchase history and user dashboard
-- Admin product CRUD (including draft/published and physical stock), admin fulfillment status, activity log
-- Responsive admin table scrolling and navigation drawer; accessible sales table alternative
+Administrator endpoints require server-side administrator authentication.
 
-## IMPORTANT: Limitations and assignment completion
+---
 
-The assignment PDF specifically requires a **RESTful API and backend database**. This ZIP does NOT fulfill that part yet: its demo stores everything client-side in localStorage. For the final assessed deployment you must integrate a backend and database, move login/session/role checks and CRUD validation to the server, use server-created audit records, and replace the simulated checkout with an appropriate test or real payment service. Do not treat the demo as production-ready.
+## 9. Frontend Libraries
 
-Product imagery is an original CSS/emoji illustrative treatment (not uploaded product photos). To add true product images or secure digital files, implement server-side upload/file storage.
+### Vue 3
 
-Do not collect real card numbers using this prototype.
+Used to create reusable components, reactive interfaces and application pages.
 
-## Build/deployment
+### Vue Router
 
-```bash
-npm run build
-npm run preview
-```
+Used for navigation between storefront, customer and administrator pages.
 
-Deploy the `dist/` output to a static host supporting SPA fallback routes. The assignment specifies Mercury; verify Mercury supports rewriting missing paths to `index.html`, or adapt routing to hash mode if necessary. Check the server-provided Node version and hosting rules.
+### Pinia
 
-## Design and accessibility
+Used for frontend state management and reactive cached data.
 
-- Mobile-first responsive design with Bootstrap grid, scoped reusable Vue components and CSS tokens.
-- Text and interactive color palette selected for WCAG AA contrast on intended surfaces.
-- Please still complete real-device, keyboard, screen-reader, zoom/reflow and automated axe/Lighthouse testing before submission. Automated tools cannot fully verify accessibility.
+### Bootstrap
 
-## Resetting the demo
+Used for responsive layouts, grid systems, spacing and general styling.
 
-Open developer tools → Application → Local Storage → remove `shopnest-demo-v1` and reload.
+### Vuetify
 
-## Suggested next steps for your project
+Used for interface components including:
 
-1. Run app; sign in as customer; create a demo order.
-2. Sign out; sign in as admin; view that order and update fulfillment.
-3. Create/edit/delete a product; browse Activity Log and storefront.
-4. Add the backend REST API/database and formal tests before submitting the university assignment.
+- v-app
+- v-btn
+- v-table
+- v-form
+- v-text-field
+- v-select
+- v-combobox
+- v-alert
+- v-chip
+- v-pagination
 
-## PDF receipt & cancellation demonstration
+### JavaScript Fetch API
 
-This edition adds `jspdf` and `jspdf-autotable`. Run `npm install` again after extracting. Paid **demo** orders offer a **Download PDF Receipt** action on confirmation, order details, and purchase history. The generated PDF contains the order snapshot, itemized prices, shipping, and demo-paid status.
+Used to communicate with the PHP REST API asynchronously.
 
-On Order Details, customers can **Cancel / Request Refund** for processing or digital-delivered orders. An admin can review requests on **Admin > Orders > select order**. Approving simulates cancellation and refund status; **no actual payment or refund is made**. This demo uses browser localStorage and must not be treated as a secure payment/receipt solution.
+---
 
-## Digital purchases and product version comparison
+## 10. Build and Mercury Deployment
 
-- The customer dashboard now shows **View purchased products** under **Digital items purchased**. It navigates to `/orders?type=digital`, where purchased digital items have View Product links (when the catalog listing still exists).
-- Admin > Products > Edit Product now includes **Version history & compare**, also accessible directly from each product row. The page `/admin/products/:id/versions` shows a version list and two selectable snapshots, including comparison of product descriptions, specifications, illustrations, prices and other fields.
-- The first planner has illustrative v1/v2 history to demonstrate comparisons. Further admin edits create actual snapshots preserved in localStorage.
-- **Restore** adds a new draft snapshot without changing the live store product. It opens the editor populated with that draft; choose the appropriate publication status and **Save product** to apply changes, creating a new version.
-- All version history is browser-local demonstration data, not a secure server-side revision log. A production deployment needs backend persistence, permissions and audit controls.
->>>>>>> 0306554 (Upload frontend files)
+### Step 1: Build the frontend
+
+Run:
+
+    npm run build
+
+Vite generates the production frontend inside:
+
+    dist/
+
+### Step 2: Upload frontend files
+
+Upload the contents of `dist/` into your Mercury project web directory.
+
+The deployed directory should contain the generated `index.html` and `assets/` directory.
+
+### Step 3: Upload backend files
+
+Ensure the following directory is available alongside the deployed frontend:
+
+    resources/
+
+It must contain the PHP API, SQL files and the private server-side database configuration.
+
+The actual `db-config.php` must be installed on Mercury separately and must not be published to GitHub.
+
+### Step 4: Check deployment configuration
+
+The Mercury deployment path is configured in:
+
+    vite.config.js
+
+Make sure the configured base path matches your actual Mercury project directory.
+
+### Step 5: Test the API
+
+Open the health endpoint:
+
+    resources/shopnest-api.php/health
+
+A successful response should indicate that the API and database are connected.
+
+Also test product retrieval:
+
+    resources/shopnest-api.php/products
+
+---
+
+## 11. Testing Checklist
+
+### Customer Testing
+
+- Register a customer account.
+- Sign in and sign out.
+- Search and filter products.
+- Add products to cart.
+- Update cart quantities.
+- Complete simulated checkout.
+- View order history.
+- Download a PDF receipt.
+- Request cancellation.
+
+### Administrator Testing
+
+- Sign in as administrator.
+- View the dashboard.
+- Retrieve product listings.
+- Create a product.
+- Update a product.
+- Archive a product.
+- Compare product versions.
+- Restore an earlier version.
+- Update order fulfillment.
+- Review cancellation requests.
+- Check activity logs.
+
+### Database Testing
+
+- Verify that products are retrieved from MariaDB.
+- Verify that new products are inserted into MariaDB.
+- Verify that product updates persist after refreshing.
+- Verify that archived products remain in the database.
+- Verify that product version snapshots are stored.
+- Verify that order information persists.
+
+---
+
+## 12. Security and Limitations
+
+ShopNest is a student demonstration application.
+
+- Database credentials must remain private.
+- Administrator authorization is enforced by the PHP API.
+- Passwords are handled through server-side password hashing.
+- PHP sessions are used for authentication.
+- Database operations should use prepared statements.
+- Checkout uses simulated payments.
+- No actual financial transactions or refunds are processed.
+- Digital downloads are demonstration functionality and require secure file delivery for a production system.
+- Product images use existing image paths; image uploads require separate backend storage functionality.
+
+Do not use real payment details or sensitive personal information for demonstration accounts.
+
+---
+
+## 13. Project Information
+
+Project: ShopNest
+
+Course: COS30043 - Interface Design and Development
+
+Institution: Swinburne University of Technology
+
+Repository:
+
+https://github.com/JeffreySZQ/Shopnest
+
+Deployment:
+
+Swinburne Mercury Web Hosting
+
+This project demonstrates frontend development, responsive design, Vue application architecture, REST API integration, database operations and product management.
