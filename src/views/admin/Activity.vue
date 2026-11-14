@@ -1,43 +1,35 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useStore } from '@/stores/shop.js';
 import { History, Search } from 'lucide-vue-next';
+import { api } from '@/services/shopApi.js';
 
-const s = useStore(),
-    q = ref(''),
-    resource = ref(''),
-    page = ref(1),
-    size = 10;
+const s = useStore();
+const q = ref('');
+const resource = ref('');
+const page = ref(1);
+const size = 10;
+const error = ref('');
+
+onMounted(async () => {
+    try {
+        const result = await api.get('/admin/activity');
+        s.logs = result.logs;
+    } catch (e) {
+        error.value = e.message;
+    }
+});
 
 const filtered = computed(() =>
-    s.logs.filter(l =>
-        (!resource.value || l.resource === resource.value) &&
-        (
-            !q.value ||
-            (l.actor + ' ' + l.action + ' ' + l.resource + ' ' + l.detail)
-                .toLowerCase()
-                .includes(q.value.toLowerCase())
-        )
+    s.logs.filter(log =>
+        (!resource.value || log.resource === resource.value) &&
+        (!q.value || (log.actor + ' ' + log.action + ' ' + log.resource + ' ' + log.detail).toLowerCase().includes(q.value.toLowerCase()))
     )
 );
 
-const pages = computed(() =>
-    Math.max(1, Math.ceil(filtered.value.length / size))
-);
-
-const shown = computed(() =>
-    filtered.value.slice(
-        (page.value - 1) * size,
-        page.value * size
-    )
-);
-
-const resources = [
-    'Products',
-    'Orders',
-    'Account',
-    'System'
-];
+const pages = computed(() => Math.max(1, Math.ceil(filtered.value.length / size)));
+const shown = computed(() => filtered.value.slice((page.value - 1) * size, page.value * size));
+const resources = ['Products', 'Orders', 'Account', 'System'];
 </script>
 
 <template>
@@ -57,8 +49,9 @@ const resources = [
         </div>
 
         <div class="panel">
+            <p v-if="error" class="text-danger" role="alert">{{ error }}</p>
             <div class="demo-panel mb-4">
-                These logs use browser local storage and are not tamper-proof.
+                These records are retrieved from the ShopNest database and show actions recorded by the PHP backend.
                 Real auditing requires append-only server records and role-based permissions.
             </div>
 

@@ -1,73 +1,54 @@
 
 <script setup>
-import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { useStore } from '@/stores/shop.js'
-import { Search, Download } from 'lucide-vue-next'
-import { downloadReceipt } from '@/utils/receipt.js'
-import PageHeading from '@/components/PageHeading.vue'
-import StatusBadge from '@/components/StatusBadge.vue'
+import { computed, ref, watch, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { useStore } from '@/stores/shop.js';
+import { Search, Download } from 'lucide-vue-next';
+import { downloadReceipt } from '@/utils/receipt.js';
+import PageHeading from '@/components/PageHeading.vue';
+import StatusBadge from '@/components/StatusBadge.vue';
+import { refreshOrders } from '@/services/shopApi.js';
 
-const route = useRoute()
-const s = useStore()
+const route = useRoute();
+const s = useStore();
+const search = ref('');
+const status = ref(route.query.type === 'digital' ? 'digital delivered' : '');
+const page = ref(1);
+const size = 5;
+const error = ref('');
+const onlyDigital = computed(() => route.query.type === 'digital');
 
-const search = ref('')
+onMounted(async () => {
+    try {
+        await refreshOrders(s);
+    } catch (e) {
+        error.value = e.message;
+    }
+});
 
-// Automatically select Digital delivered
-// when arriving from Digital items purchased
-const status = ref(
-  route.query.type === 'digital' ? 'digital delivered' : ''
-)
+watch(onlyDigital, isDigital => {
+    status.value = isDigital ? 'digital delivered' : '';
+    page.value = 1;
+});
 
-const page = ref(1)
-const size = 5
-
-// Detect digital purchases URL
-const onlyDigital = computed(() => route.query.type === 'digital')
-
-// Update selected status when switching between
-// digital purchases and normal purchase history
-watch(onlyDigital, (isDigital) => {
-  status.value = isDigital ? 'digital delivered' : ''
-  page.value = 1
-})
-
-// Filter orders
 const results = computed(() =>
-  s.myOrders.filter(o =>
-    (!onlyDigital.value ||
-      o.items.some(i => i.type === 'digital')) &&
+    s.myOrders.filter(o =>
+        (!onlyDigital.value || o.items.some(i => i.type === 'digital')) &&
+        (!search.value || o.id.toLowerCase().includes(search.value.toLowerCase())) &&
+        (!status.value || o.fulfillmentStatus === status.value)
+    )
+);
 
-    (!search.value ||
-      o.id.toLowerCase().includes(search.value.toLowerCase())) &&
-
-    (!status.value ||
-      o.fulfillmentStatus === status.value)
-  )
-)
-
-// Pagination
-const pages = computed(() =>
-  Math.max(1, Math.ceil(results.value.length / size))
-)
-
-const shown = computed(() =>
-  results.value.slice(
-    (page.value - 1) * size,
-    page.value * size
-  )
-)
-
-// PDF receipt generation
-const error = ref('')
+const pages = computed(() => Math.max(1, Math.ceil(results.value.length / size)));
+const shown = computed(() => results.value.slice((page.value - 1) * size, page.value * size));
 
 function getReceipt(order) {
-  try {
-    error.value = ''
-    downloadReceipt(order)
-  } catch (e) {
-    error.value = e.message
-  }
+    try {
+        error.value = '';
+        downloadReceipt(order);
+    } catch (e) {
+        error.value = e.message;
+    }
 }
 </script>
 

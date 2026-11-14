@@ -1,33 +1,38 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useStore } from '@/stores/shop.js';
 import { useRoute } from 'vue-router';
 import PageHeading from '@/components/PageHeading.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import { ArrowLeft, Download, Ban } from 'lucide-vue-next';
 import { downloadReceipt } from '@/utils/receipt.js';
+import { api, refreshOrders } from '@/services/shopApi.js';
 
 const store = useStore();
 const route = useRoute();
-
-const order = computed(() =>
-    store.orders.find(
-        o => o.id === route.params.id && o.userId === store.user?.id
-    )
-);
-
+const order = ref(null);
 const notice = ref('');
 const error = ref('');
+const busy = ref(false);
 
 const canCancel = computed(() =>
     order.value &&
     ['processing', 'digital delivered'].includes(order.value.fulfillmentStatus) &&
-    !order.value.cancellationRequestedAt
+    order.value.cancellationStatus !== 'pending' &&
+    order.value.cancellationStatus !== 'approved'
 );
+
+onMounted(async () => {
+    try {
+        const result = await api.get('/orders/' + encodeURIComponent(route.params.id));
+        order.value = result.order;
+    } catch (e) {
+        error.value = e.message;
+    }
+});
 
 function getReceipt() {
     error.value = '';
-
     try {
         downloadReceipt(order.value);
     } catch (e) {
@@ -35,39 +40,34 @@ function getReceipt() {
     }
 }
 
-function cancelOrder() {
+async function cancelOrder() {
     error.value = '';
+    if (!order.value) return;
+    if (!window.confirm('Request cancellation? An administrator must review it. No real refund will be issued.')) return;
 
-    if (
-        !window.confirm(
-            'Request cancellation and a simulated refund for this order? An admin must approve the request.'
-        )
-    ) return;
-
+    busy.value = true;
     try {
-        store.requestCancellation(order.value.id);
-
-        notice.value = 'Cancellation requested. An admin can review it. No actual refund has been issued.';
+        await api.post('/orders/' + encodeURIComponent(order.value.id) + '/cancellation', {});
+        await refreshOrders(store);
+        const result = await api.get('/orders/' + encodeURIComponent(order.value.id));
+        order.value = result.order;
+        notice.value = 'Cancellation requested. An administrator can review it. No actual refund has been issued.';
     } catch (e) {
         error.value = e.message;
+    } finally {
+        busy.value = false;
     }
 }
 
 function demoDownload() {
     const blob = new Blob(
-        [
-            'ShopNest demo digital access notice\nThis is a sample file, not a purchased product.'
-        ],
+        ['ShopNest demo digital access notice\nThis is a sample file, not a purchased product.'],
         { type: 'text/plain' }
     );
-
     const a = document.createElement('a');
-
     a.href = URL.createObjectURL(blob);
     a.download = 'shopnest-demo-access.txt';
-
     a.click();
-
     URL.revokeObjectURL(a.href);
 }
 </script>
@@ -181,7 +181,7 @@ function demoDownload() {
                             <button
                                 type="button"
                                 class="btn btn-outline-danger w-100"
-                                :disabled="!canCancel"
+                                :disabled="!canCancel || busy"
                                 @click="cancelOrder"
                             >
                                 <Ban
@@ -251,7 +251,8 @@ function demoDownload() {
         </template>
 
         <div v-else class="empty-state">
-            <h1>Order not found</h1>
+            <h1>{{ error ? 'Unable to load order' : 'Loading order details...' }}</h1>
+            <p v-if="error" role="alert">{{ error }}</p>
 
             <RouterLink
                 to="/orders"

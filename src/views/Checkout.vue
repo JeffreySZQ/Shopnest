@@ -4,51 +4,55 @@ import { useRouter } from 'vue-router';
 import { useStore } from '@/stores/shop.js';
 import { ShieldCheck, ArrowLeft } from 'lucide-vue-next';
 import PageHeading from '@/components/PageHeading.vue';
+import { api, refreshCart, refreshOrders } from '@/services/shopApi.js';
 
-const s = useStore(),
-    router = useRouter(),
-    error = ref(''),
-    form = reactive({
-        email: s.user?.email || '',
-        phone: '',
-        address: '',
-        city: '',
-        postcode: ''
-    });
+const s = useStore();
+const router = useRouter();
+const error = ref('');
+const submitting = ref(false);
+const form = reactive({
+    email: s.user ? s.user.email : '',
+    address: '',
+    city: '',
+    postcode: ''
+});
 
 const physical = computed(() =>
     s.cartItems.some(i => i.product.type === 'physical')
 );
 
-const shipping = computed(() =>
-    physical.value ? 8 : 0
-);
+const shipping = computed(() => physical.value ? 8 : 0);
 
-function finish() {
+async function finish() {
     error.value = '';
-
+    if (!s.user) {
+        error.value = 'Please sign in before checkout.';
+        return;
+    }
     if (!s.cartItems.length) {
         error.value = 'Your cart is empty.';
         return;
     }
-
-    if (
-        physical.value &&
-        (
-            !form.address.trim() ||
-            !form.city.trim() ||
-            !form.postcode.trim()
-        )
-    ) {
+    if (physical.value && (!form.address.trim() || !form.city.trim() || !form.postcode.trim())) {
         error.value = 'Please complete your delivery address.';
         return;
     }
 
+    submitting.value = true;
     try {
-        const o = s.checkout(form);
-        router.push('/order-confirmed/' + o.id);
+        const result = await api.post('/checkout', {
+            email: form.email.trim(),
+            address: form.address.trim(),
+            city: form.city.trim(),
+            postcode: form.postcode.trim()
+        });
+        await refreshCart(s);
+        await refreshOrders(s);
+        router.push('/order-confirmed/' + encodeURIComponent(result.order.id));
     } catch (e) {
         error.value = e.message;
+    } finally {
+        submitting.value = false;
     }
 }
 </script>
@@ -104,25 +108,6 @@ function finish() {
                             />
                         </div>
 
-                        <div
-                            v-if="physical"
-                            class="col-md-6"
-                        >
-                            <label
-                                for="contact-phone"
-                                class="form-label"
-                            >
-                                Phone (optional)
-                            </label>
-
-                            <input
-                                id="contact-phone"
-                                v-model="form.phone"
-                                type="tel"
-                                class="form-control"
-                                autocomplete="tel"
-                            />
-                        </div>
                     </div>
                 </div>
 
@@ -266,8 +251,9 @@ function finish() {
                     form="checkout-form"
                     class="btn btn-primary btn-lg w-100"
                     type="submit"
+                    :disabled="submitting"
                 >
-                    Place order
+                    {{ submitting ? 'Placing order...' : 'Place order' }}
                 </button>
 
                 <RouterLink

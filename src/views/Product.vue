@@ -1,68 +1,75 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useCurrencyStore } from '@/stores/currency.js';import {
-  Heart,
-  ShoppingCart,
-  ArrowLeft,
-  Truck,
-  Download,
-  CheckCircle2,
-  Minus,
-  Plus
-} from 'lucide-vue-next'
-import { useStore } from '@/stores/shop.js'
-import ProductArt from '@/components/ProductArt.vue'
-import ProductCard from '@/components/ProductCard.vue'
+import { computed, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useCurrencyStore } from '@/stores/currency.js';
+import {
+    Heart,
+    ShoppingCart,
+    ArrowLeft,
+    Truck,
+    Download,
+    CheckCircle2,
+    Minus,
+    Plus
+} from 'lucide-vue-next';
+import { useStore } from '@/stores/shop.js';
+import ProductArt from '@/components/ProductArt.vue';
+import ProductCard from '@/components/ProductCard.vue';
+import { api, refreshCart, refreshLikes } from '@/services/shopApi.js';
 
-const s = useStore()
-const currency = useCurrencyStore()
-const route = useRoute()
-const router = useRouter()
-const qty = ref(1)
-const notice = ref('')
+const s = useStore();
+const currency = useCurrencyStore();
+const route = useRoute();
+const router = useRouter();
+const qty = ref(1);
+const notice = ref('');
+const busy = ref(false);
 
 const p = computed(() =>
-  s.products.find(
-    product =>
-      product.id === Number(route.params.id) &&
-      product.status === 'published'
-  )
-)
+    s.products.find(product => Number(product.id) === Number(route.params.id) && product.status === 'published')
+);
 
 const related = computed(() =>
-  s.published
-    .filter(
-      product =>
-        product.category === p.value?.category &&
-        product.id !== p.value?.id
-    )
-    .slice(0, 3)
-)
+    s.published.filter(product => product.category === p.value?.category && product.id !== p.value?.id).slice(0, 3)
+);
 
-watch(
-  () => route.params.id,
-  () => {
-    qty.value = 1
-    notice.value = ''
-  }
-)
+watch(() => route.params.id, () => {
+    qty.value = 1;
+    notice.value = '';
+});
 
-function add() {
-  try {
-    s.addCart(p.value.id, qty.value)
-    notice.value = 'Added to cart!'
-  } catch (e) {
-    notice.value = e.message
-  }
+async function add() {
+    if (!p.value) return;
+    if (!s.user) {
+        router.push({ name: 'login', query: { redirect: route.fullPath } });
+        return;
+    }
+    busy.value = true;
+    notice.value = '';
+    try {
+        await api.post('/cart/items', { productId: p.value.id, quantity: qty.value });
+        await refreshCart(s);
+        notice.value = 'Added to cart!';
+    } catch (e) {
+        notice.value = e.message;
+    } finally {
+        busy.value = false;
+    }
 }
 
-function like() {
-  try {
-    s.toggleLike(p.value.id)
-  } catch (e) {
-    router.push({ name: 'login', query: { redirect: route.fullPath } })
-  }
+async function like() {
+    if (!p.value) return;
+    if (!s.user) {
+        router.push({ name: 'login', query: { redirect: route.fullPath } });
+        return;
+    }
+    try {
+        const result = await api.post(`/likes/${p.value.id}/toggle`, {});
+        p.value.likes = Number(result.likes);
+        await refreshLikes(s);
+    } catch (e) {
+        notice.value = e.message;
+    }
 }
 </script>
 
@@ -127,7 +134,7 @@ function like() {
 
           <button
             class="btn btn-primary btn-lg flex-grow-1"
-            :disabled="p.type === 'physical' && p.stock === 0"
+            :disabled="busy || (p.type === 'physical' && p.stock === 0)"
             @click="add"
           >
             <ShoppingCart :size="18" />

@@ -55,12 +55,9 @@ const filtersOpen = ref(false)
 
 const perPage = 9
 
-const categories = [
-  'Leadership',
-  'Personal Growth',
-  'Coaching',
-  'Digital Tools'
-]
+const categories = computed(() =>
+  [...new Set(s.published.map(product => product.category).filter(Boolean))].sort()
+)
 
 // Detect liked products page
 const onlyLiked = computed(
@@ -217,6 +214,11 @@ const filtered = computed(() => {
       matchesLiked
     )
   })
+
+  // Default 'Featured' order uses the database product_likes count.
+  if (sort.value === 'featured') {
+    arr.sort((a, b) => (b.likes || 0) - (a.likes || 0))
+  }
 
   // Sort by price: low to high
   if (sort.value === 'price-low') {

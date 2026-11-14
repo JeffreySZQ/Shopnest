@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useStore } from '@/stores/shop.js';
+import { restoreSession, setStoreUser } from '@/services/shopApi.js';
 
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import AdminLayout from '@/layouts/AdminLayout.vue';
@@ -58,10 +59,16 @@ const router = createRouter({
     scrollBehavior: () => ({ top: 0 })
 });
 
-router.beforeEach(to => {
+router.beforeEach(async to => {
     const s = useStore();
-
     s.init();
+
+    try {
+        await restoreSession(s);
+    } catch (error) {
+        setStoreUser(s, null);
+        console.error('Could not restore PHP session:', error);
+    }
 
     if (
         to.matched.some(m => m.meta.admin) &&

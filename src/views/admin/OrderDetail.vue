@@ -1,36 +1,66 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from '@/stores/shop.js';
 import { ArrowLeft, Save } from 'lucide-vue-next';
 import StatusBadge from '@/components/StatusBadge.vue';
+import { api, refreshAdminData } from '@/services/shopApi.js';
 
-const s = useStore(),
-    route = useRoute(),
-    o = computed(() =>
-        s.orders.find(o => o.id === route.params.id)
-    ),
-    newStatus = ref(''),
-    notice = ref('');
+const s = useStore();
+const route = useRoute();
+const o = ref(null);
+const newStatus = ref('');
+const notice = ref('');
+const busy = ref(false);
 
-function decide(approve) {
+async function loadOrder() {
+    const result = await api.get('/admin/orders/' + encodeURIComponent(route.params.id));
+    o.value = result.order;
+    newStatus.value = o.value.fulfillmentStatus;
+}
+
+onMounted(async () => {
     try {
-        s.resolveCancellation(o.value.id, approve);
-
-        notice.value = approve
-            ? 'Demo cancellation approved; simulated refund recorded.'
-            : 'Cancellation request declined.';
+        await loadOrder();
     } catch (e) {
         notice.value = e.message;
     }
+});
+
+async function decide(approve) {
+    if (!o.value) return;
+    busy.value = true;
+    notice.value = '';
+    try {
+        await api.post('/admin/cancellations/' + encodeURIComponent(o.value.id), { approve });
+        await refreshAdminData(s);
+        await loadOrder();
+        notice.value = approve
+            ? 'Cancellation approved. Refund status is simulated; no money was returned.'
+            : 'Cancellation request declined.';
+    } catch (e) {
+        notice.value = e.message;
+    } finally {
+        busy.value = false;
+    }
 }
 
-function update() {
-    if (!newStatus.value) return;
-
-    s.fulfill(o.value.id, newStatus.value);
-
-    notice.value = 'Order fulfillment status updated.';
+async function update() {
+    if (!newStatus.value || !o.value) return;
+    busy.value = true;
+    notice.value = '';
+    try {
+        await api.patch('/admin/orders/' + encodeURIComponent(o.value.id), {
+            fulfillmentStatus: newStatus.value
+        });
+        await refreshAdminData(s);
+        await loadOrder();
+        notice.value = 'Order fulfillment status updated.';
+    } catch (e) {
+        notice.value = e.message;
+    } finally {
+        busy.value = false;
+    }
 }
 </script>
 
@@ -135,20 +165,20 @@ function update() {
 
                             <p class="small muted">
                                 Customer requests cancellation and a demo refund.
-                                This does not send real money.
+                                No real payment or refund is processed.
                             </p>
 
                             <div class="d-flex flex-wrap gap-2">
                                 <button
                                     class="btn btn-outline-danger btn-sm"
-                                    @click="decide(true)"
+                                    @click="decide(true)" :disabled="busy"
                                 >
                                     Approve cancellation (demo)
                                 </button>
 
                                 <button
                                     class="btn btn-outline-primary btn-sm"
-                                    @click="decide(false)"
+                                    @click="decide(false)" :disabled="busy"
                                 >
                                     Decline
                                 </button>
@@ -185,7 +215,7 @@ function update() {
 
                         <button
                             class="btn btn-primary w-100 mt-3"
-                            :disabled="!newStatus"
+                            :disabled="!newStatus || busy"
                             @click="update"
                         >
                             <Save :size="17" />
@@ -205,7 +235,7 @@ function update() {
         </template>
 
         <div v-else class="empty-state">
-            <h1>Order not found</h1>
+            <h1>Order unavailable</h1>
 
             <RouterLink
                 to="/admin/orders"

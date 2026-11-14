@@ -55,14 +55,14 @@ const max = computed(() =>
                 </p>
             </div>
 
-            <span class="demo-tag">DEMO DATA</span>
+            <span class="demo-tag">DATABASE RECORDS</span>
         </div>
 
         <div class="row g-3">
             <div class="col-sm-6 col-xl-3">
                 <div class="metric-card">
                     <Wallet />
-                    <span>Demo revenue</span>
+                    <span>Simulated revenue</span>
                     <strong>RM {{ s.sales.toFixed(2) }}</strong>
                 </div>
             </div>
@@ -99,7 +99,7 @@ const max = computed(() =>
                         <h2>Sales over the last 7 days</h2>
 
                         <span class="muted small">
-                            Demo orders · MYR
+                            Recorded orders · MYR
                         </span>
                     </div>
 
@@ -243,7 +243,7 @@ const max = computed(() =>
             </div>
 
             <div v-else class="empty-inline">
-                No demo orders yet. Create one using the customer demo account.
+                No orders have been recorded yet.
             </div>
         </section>
     </div>

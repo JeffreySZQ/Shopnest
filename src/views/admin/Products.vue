@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 <script setup>
 import { ref, computed, watch } from 'vue';
@@ -5,10 +6,21 @@ import { useStore } from '@/stores/shop.js';
 
 const s = useStore();
 
+=======
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from '@/stores/shop.js';
+import { Search, Plus, Trash2, Pencil, History } from 'lucide-vue-next';
+import StatusBadge from '@/components/StatusBadge.vue';
+import { api, refreshAdminData } from '@/services/shopApi.js';
+
+const s = useStore();
+>>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
 const search = ref('');
 const type = ref('');
 const status = ref('');
 const page = ref(1);
+<<<<<<< HEAD
 const pageSize = ref(7);
 
 const typeOptions = [
@@ -24,20 +36,28 @@ const statusOptions = [
 ];
 
 const pageSizes = [5, 7, 10, 20];
+=======
+const pageSize = 7;
+const error = ref('');
+
+onMounted(async () => {
+    try {
+        await refreshAdminData(s);
+    } catch (e) {
+        error.value = e.message;
+    }
+});
+>>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
 
 const filtered = computed(() =>
     s.products.filter(p =>
-        (
-            !search.value ||
-            (p.name + ' ' + p.sku)
-                .toLowerCase()
-                .includes(search.value.toLowerCase())
-        ) &&
+        (!search.value || (p.name + ' ' + p.sku).toLowerCase().includes(search.value.toLowerCase())) &&
         (!type.value || p.type === type.value) &&
         (!status.value || p.status === status.value)
     )
 );
 
+<<<<<<< HEAD
 const totalPages = computed(() =>
     Math.max(
         1,
@@ -69,6 +89,19 @@ function remove(p) {
         )
     ) {
         s.deleteProduct(p.id);
+=======
+const totalPages = computed(() => Math.max(1, Math.ceil(filtered.value.length / pageSize)));
+const shown = computed(() => filtered.value.slice((page.value - 1) * pageSize, page.value * pageSize));
+
+async function remove(product) {
+    if (!confirm(`Archive ${product.name}? It will no longer appear in the public catalogue, and historical orders will be retained.`)) return;
+    error.value = '';
+    try {
+        await api.delete('/products/' + product.id);
+        await refreshAdminData(s);
+    } catch (e) {
+        error.value = e.message;
+>>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
     }
 }
 </script>
@@ -97,6 +130,13 @@ function remove(p) {
         </div>
 
         <div class="panel">
+<<<<<<< HEAD
+=======
+            <p v-if="error" class="text-danger" role="alert">{{ error }}</p>
+            <div class="toolbar">
+                <label class="search-box">
+                    <Search :size="18" />
+>>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
 
             <!-- Search and Filters -->
             <div class="row g-3 align-items-center mb-4">
@@ -239,6 +279,7 @@ function remove(p) {
                                         Versions
                                     </v-btn>
 
+<<<<<<< HEAD
                                     <v-btn
                                         size="small"
                                         variant="outlined"
@@ -249,6 +290,16 @@ function remove(p) {
                                         Delete
                                     </v-btn>
 
+=======
+                                    <button
+                                        class="btn btn-outline-danger btn-sm"
+                                        :aria-label="'Archive ' + p.name"
+                                        @click="remove(p)"
+                                    >
+                                        <Trash2 :size="15" />
+                                        Archive
+                                    </button>
+>>>>>>> 7971e5f794b1c47b2fa3826b3956cecdb7ea3de9
                                 </div>
                             </td>
                         </tr>
