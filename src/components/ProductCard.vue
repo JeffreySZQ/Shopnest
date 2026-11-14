@@ -1,9 +1,11 @@
 <script setup>
 import { ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { Heart, Plus, Check } from 'lucide-vue-next';
 import { useStore } from '@/stores/shop.js';
 import ProductArt from './ProductArt.vue';
 import { useCurrencyStore } from '@/stores/currency.js';
+import { api, refreshCart, refreshLikes } from '@/services/shopApi.js';
 
 defineProps({
     product: {
@@ -12,27 +14,43 @@ defineProps({
     }
 });
 
-const s = useStore(),
-    currency = useCurrencyStore(),
-    added = ref(false),
-    error = ref('');
+const s = useStore();
+const currency = useCurrencyStore();
+const router = useRouter();
+const route = useRoute();
+const added = ref(false);
+const error = ref('');
+const busy = ref(false);
 
-function add(p) {
+async function add(p) {
+    error.value = '';
+    if (!s.user) {
+        router.push({ name: 'login', query: { redirect: route.fullPath } });
+        return;
+    }
+    busy.value = true;
     try {
-        s.addCart(p.id);
+        await api.post('/cart/items', { productId: p.id, quantity: 1 });
+        await refreshCart(s);
         added.value = true;
-        error.value = '';
-
-        setTimeout(() => added.value = false, 1400);
+        setTimeout(() => { added.value = false; }, 1400);
     } catch (e) {
         error.value = e.message;
+    } finally {
+        busy.value = false;
     }
 }
 
-function like(p) {
+async function like(p) {
+    error.value = '';
+    if (!s.user) {
+        router.push({ name: 'login', query: { redirect: route.fullPath } });
+        return;
+    }
     try {
-        s.toggleLike(p.id);
-        error.value = '';
+        const result = await api.post(`/likes/${p.id}/toggle`, {});
+        p.likes = Number(result.likes);
+        await refreshLikes(s);
     } catch (e) {
         error.value = e.message;
     }
@@ -90,6 +108,7 @@ function like(p) {
 
             <button
                 class="btn btn-primary w-100 mt-3"
+                :disabled="busy"
                 @click="add(product)"
             >
                 <Check v-if="added" :size="17" />

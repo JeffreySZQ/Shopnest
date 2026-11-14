@@ -11,30 +11,40 @@ import {
     LogOut
 } from 'lucide-vue-next';
 import { useStore } from '@/stores/shop.js';
+import { api, clearStoreSession } from '@/services/shopApi.js';
 
-const s = useStore(),
-    currency = useCurrencyStore(),
-    route = useRoute(),
-    router = useRouter(),
-    open = ref(false);
+const s = useStore();
+const currency = useCurrencyStore();
+const route = useRoute();
+const router = useRouter();
+const open = ref(false);
+const logoutError = ref('');
 
 watch(
     () => route.fullPath,
-    () => open.value = false
+    () => { open.value = false; }
 );
 
 onMounted(() => {
     currency.loadRates();
 });
 
-function logout() {
-    s.logout();
-    router.push('/');
+async function logout() {
+    logoutError.value = '';
+    try {
+        await api.post('/auth/logout', {});
+        clearStoreSession(s);
+        await router.push('/');
+    } catch (e) {
+        logoutError.value = e.message;
+        console.error('Logout failed:', e);
+    }
 }
 </script>
 
 <template>
     <header class="site-header">
+        <p v-if="logoutError" class="text-danger small text-center mb-0" role="alert">{{ logoutError }}</p>
         <div class="container header-inner">
             <RouterLink
                 to="/"

@@ -12,14 +12,20 @@ import {
     X,
     LogOut
 } from 'lucide-vue-next';
+import { api, clearStoreSession } from '@/services/shopApi.js';
 
-const open = ref(false),
-    s = useStore(),
-    router = useRouter();
+const open = ref(false);
+const s = useStore();
+const router = useRouter();
 
-function logout() {
-    s.logout();
-    router.push('/login');
+async function logout() {
+    try {
+        await api.post('/auth/logout', {});
+        clearStoreSession(s);
+        await router.push('/login');
+    } catch (e) {
+        alert(e.message);
+    }
 }
 </script>
 

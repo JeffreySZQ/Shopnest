@@ -1,28 +1,28 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from '@/stores/shop.js';
 import { downloadReceipt } from '@/utils/receipt.js';
-import {
-    CheckCircle2,
-    PackageCheck,
-    ArrowRight,
-    Download
-} from 'lucide-vue-next';
+import { CheckCircle2, PackageCheck, ArrowRight, Download } from 'lucide-vue-next';
+import { api } from '@/services/shopApi.js';
 
-const s = useStore(),
-    route = useRoute();
-
-const order = computed(() =>
-    s.orders.find(
-        o => o.id === route.params.id && o.userId === s.user?.id
-    )
-);
-
+const s = useStore();
+const route = useRoute();
+const order = ref(null);
 const error = ref('');
+
+onMounted(async () => {
+    try {
+        const result = await api.get('/orders/' + encodeURIComponent(route.params.id));
+        order.value = result.order;
+    } catch (e) {
+        error.value = e.message;
+    }
+});
 
 function getReceipt() {
     try {
+        error.value = '';
         downloadReceipt(order.value);
     } catch (e) {
         error.value = e.message;
@@ -111,8 +111,9 @@ function getReceipt() {
             </p>
         </div>
 
-        <div v-else class="empty-state">
-            <h1>Order not found</h1>
+        <div v-else-if="error" class="empty-state">
+            <h1>Unable to retrieve order</h1>
+            <p role="alert">{{ error }}</p>
 
             <p>We couldn't find that order in your account.</p>
 
@@ -120,5 +121,6 @@ function getReceipt() {
                 My orders
             </RouterLink>
         </div>
+        <div v-else class="empty-state"><p>Loading order details...</p></div>
     </div>
 </template>

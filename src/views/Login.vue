@@ -2,42 +2,43 @@
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useStore } from '@/stores/shop.js';
-import { LogIn, ShieldCheck } from 'lucide-vue-next';
+import { LogIn } from 'lucide-vue-next';
+import { api, setStoreUser, refreshCustomerData, refreshAdminData } from '@/services/shopApi.js';
 
-const s = useStore(),
-    router = useRouter(),
-    route = useRoute(),
-    email = ref(''),
-    password = ref(''),
-    error = ref(''),
-    show = ref(false);
+const s = useStore();
+const router = useRouter();
+const route = useRoute();
+const email = ref('');
+const password = ref('');
+const error = ref('');
+const show = ref(false);
+const submitting = ref(false);
 
-function login() {
+async function login() {
+    error.value = '';
+    submitting.value = true;
     try {
-        const u = s.login(email.value, password.value);
-
+        const result = await api.post('/auth/login', {
+            email: email.value.trim(),
+            password: password.value
+        });
+        setStoreUser(s, result.user);
+        if (result.user.role === 'admin') {
+            await refreshAdminData(s);
+        } else {
+            await refreshCustomerData(s);
+        }
         const dest = String(route.query.redirect || '');
-
         router.push(
             dest && dest.startsWith('/') && !dest.startsWith('//')
                 ? dest
-                : (u.role === 'admin' ? '/admin' : '/dashboard')
+                : (result.user.role === 'admin' ? '/admin' : '/dashboard')
         );
     } catch (e) {
         error.value = e.message;
+    } finally {
+        submitting.value = false;
     }
-}
-
-function demo(role) {
-    email.value = role === 'admin'
-        ? 'admin@shopnest.test'
-        : 'customer@shopnest.test';
-
-    password.value = role === 'admin'
-        ? 'Admin123!'
-        : 'Customer123!';
-
-    login();
 }
 </script>
 
@@ -106,8 +107,9 @@ function demo(role) {
                 <button
                     class="btn btn-primary btn-lg w-100 mt-4"
                     type="submit"
+                    :disabled="submitting"
                 >
-                    Sign in
+                    {{ submitting ? 'Signing in...' : 'Sign in' }}
                 </button>
             </form>
 
@@ -118,33 +120,6 @@ function demo(role) {
                 </RouterLink>
             </p>
 
-            <div class="demo-panel">
-                <div class="d-flex gap-2 align-items-center mb-2">
-                    <ShieldCheck :size="18" />
-                    <strong>Try the demo accounts</strong>
-                </div>
-
-                <p class="small muted">
-                    Instant access with sample data. These credentials are
-                    for demonstration only.
-                </p>
-
-                <div class="d-flex flex-wrap gap-2">
-                    <button
-                        class="btn btn-outline-primary btn-sm"
-                        @click="demo('customer')"
-                    >
-                        Sign in as customer
-                    </button>
-
-                    <button
-                        class="btn btn-outline-primary btn-sm"
-                        @click="demo('admin')"
-                    >
-                        Sign in as admin
-                    </button>
-                </div>
-            </div>
         </div>
     </div>
 </template>

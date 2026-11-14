@@ -1,53 +1,45 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useStore } from '@/stores/shop.js';
-import {
-    Search,
-    Plus,
-    Trash2,
-    Pencil,
-    History
-} from 'lucide-vue-next';
+import { Search, Plus, Trash2, Pencil, History } from 'lucide-vue-next';
 import StatusBadge from '@/components/StatusBadge.vue';
+import { api, refreshAdminData } from '@/services/shopApi.js';
 
-const s = useStore(),
-    search = ref(''),
-    type = ref(''),
-    status = ref(''),
-    page = ref(1),
-    pageSize = 7;
+const s = useStore();
+const search = ref('');
+const type = ref('');
+const status = ref('');
+const page = ref(1);
+const pageSize = 7;
+const error = ref('');
+
+onMounted(async () => {
+    try {
+        await refreshAdminData(s);
+    } catch (e) {
+        error.value = e.message;
+    }
+});
 
 const filtered = computed(() =>
     s.products.filter(p =>
-        (
-            !search.value ||
-            (p.name + ' ' + p.sku)
-                .toLowerCase()
-                .includes(search.value.toLowerCase())
-        ) &&
+        (!search.value || (p.name + ' ' + p.sku).toLowerCase().includes(search.value.toLowerCase())) &&
         (!type.value || p.type === type.value) &&
         (!status.value || p.status === status.value)
     )
 );
 
-const totalPages = computed(() =>
-    Math.max(1, Math.ceil(filtered.value.length / pageSize))
-);
+const totalPages = computed(() => Math.max(1, Math.ceil(filtered.value.length / pageSize)));
+const shown = computed(() => filtered.value.slice((page.value - 1) * pageSize, page.value * pageSize));
 
-const shown = computed(() =>
-    filtered.value.slice(
-        (page.value - 1) * pageSize,
-        page.value * pageSize
-    )
-);
-
-function remove(p) {
-    if (
-        confirm(
-            `Delete ${p.name}? This will remove the store listing, but historical orders remain.`
-        )
-    ) {
-        s.deleteProduct(p.id);
+async function remove(product) {
+    if (!confirm(`Archive ${product.name}? It will no longer appear in the public catalogue, and historical orders will be retained.`)) return;
+    error.value = '';
+    try {
+        await api.delete('/products/' + product.id);
+        await refreshAdminData(s);
+    } catch (e) {
+        error.value = e.message;
     }
 }
 </script>
@@ -75,6 +67,7 @@ function remove(p) {
         </div>
 
         <div class="panel">
+            <p v-if="error" class="text-danger" role="alert">{{ error }}</p>
             <div class="toolbar">
                 <label class="search-box">
                     <Search :size="18" />
@@ -187,11 +180,11 @@ function remove(p) {
 
                                     <button
                                         class="btn btn-outline-danger btn-sm"
-                                        :aria-label="'Delete ' + p.name"
+                                        :aria-label="'Archive ' + p.name"
                                         @click="remove(p)"
                                     >
                                         <Trash2 :size="15" />
-                                        Delete
+                                        Archive
                                     </button>
                                 </div>
                             </td>

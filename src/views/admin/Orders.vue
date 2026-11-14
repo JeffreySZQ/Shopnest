@@ -1,40 +1,34 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useStore } from '@/stores/shop.js';
 import { Search, ArrowRight } from 'lucide-vue-next';
 import StatusBadge from '@/components/StatusBadge.vue';
+import { refreshAdminData } from '@/services/shopApi.js';
 
-const s = useStore(),
-    search = ref(''),
-    status = ref(''),
-    page = ref(1),
-    size = 8;
+const s = useStore();
+const search = ref('');
+const status = ref('');
+const page = ref(1);
+const size = 8;
+const error = ref('');
+
+onMounted(async () => {
+    try {
+        await refreshAdminData(s);
+    } catch (e) {
+        error.value = e.message;
+    }
+});
 
 const filtered = computed(() =>
-    s.orders
-        .slice()
-        .reverse()
-        .filter(o =>
-            (
-                !search.value ||
-                (o.id + ' ' + o.customer + ' ' + o.email)
-                    .toLowerCase()
-                    .includes(search.value.toLowerCase())
-            ) &&
-            (!status.value || o.fulfillmentStatus === status.value)
-        )
-);
-
-const pages = computed(() =>
-    Math.max(1, Math.ceil(filtered.value.length / size))
-);
-
-const shown = computed(() =>
-    filtered.value.slice(
-        (page.value - 1) * size,
-        page.value * size
+    s.orders.slice().reverse().filter(o =>
+        (!search.value || (o.id + ' ' + o.customer + ' ' + o.email).toLowerCase().includes(search.value.toLowerCase())) &&
+        (!status.value || o.fulfillmentStatus === status.value)
     )
 );
+
+const pages = computed(() => Math.max(1, Math.ceil(filtered.value.length / size)));
+const shown = computed(() => filtered.value.slice((page.value - 1) * size, page.value * size));
 </script>
 
 <template>
@@ -54,6 +48,7 @@ const shown = computed(() =>
         </div>
 
         <div class="panel">
+            <p v-if="error" class="text-danger" role="alert">{{ error }}</p>
             <div class="toolbar">
                 <label class="search-box">
                     <Search :size="18" />

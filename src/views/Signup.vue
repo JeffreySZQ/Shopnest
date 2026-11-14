@@ -3,38 +3,41 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from '@/stores/shop.js';
 import { UserPlus } from 'lucide-vue-next';
+import { api, setStoreUser, refreshCustomerData } from '@/services/shopApi.js';
 
-const s = useStore(),
-    router = useRouter(),
-    name = ref(''),
-    email = ref(''),
-    password = ref(''),
-    confirm = ref(''),
-    error = ref('');
+const s = useStore();
+const router = useRouter();
+const name = ref('');
+const email = ref('');
+const password = ref('');
+const confirm = ref('');
+const error = ref('');
+const submitting = ref(false);
 
-function submit() {
+async function submit() {
     error.value = '';
-
     if (password.value !== confirm.value) {
         error.value = 'Passwords do not match.';
         return;
     }
-
     if (password.value.length < 8) {
         error.value = 'Password must contain at least 8 characters.';
         return;
     }
-
+    submitting.value = true;
     try {
-        s.signup(
-            name.value.trim(),
-            email.value.trim(),
-            password.value
-        );
-
+        const result = await api.post('/auth/register', {
+            name: name.value.trim(),
+            email: email.value.trim(),
+            password: password.value
+        });
+        setStoreUser(s, result.user);
+        await refreshCustomerData(s);
         router.push('/dashboard');
     } catch (e) {
         error.value = e.message;
+    } finally {
+        submitting.value = false;
     }
 }
 </script>
@@ -116,19 +119,18 @@ function submit() {
                     {{ error }}
                 </p>
 
-                <button class="btn btn-primary btn-lg w-100 mt-4">
-                    Create account
+                <button
+                    type="submit"
+                    class="btn btn-primary btn-lg w-100 mt-4"
+                    :disabled="submitting"
+                >
+                    {{ submitting ? 'Creating account...' : 'Create account' }}
                 </button>
             </form>
 
             <p class="text-center mt-3">
                 Already have an account?
                 <RouterLink to="/login">Sign in</RouterLink>
-            </p>
-
-            <p class="small muted mt-4">
-                Demo accounts and passwords are stored locally in your browser.
-                Do not use real passwords.
             </p>
         </div>
     </div>

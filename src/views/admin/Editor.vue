@@ -3,114 +3,133 @@ import { computed, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from '@/stores/shop.js';
 import { ArrowLeft, Save, History } from 'lucide-vue-next';
+import { api, refreshAdminData } from '@/services/shopApi.js';
 
-const s = useStore(),
-    route = useRoute(),
-    router = useRouter();
+const s = useStore();
+const route = useRoute();
+const router = useRouter();
+const error = ref('');
+const saving = ref(false);
 
 const existing = computed(() =>
-    s.products.find(p => p.id === Number(route.params.id))
+    s.products.find(p => Number(p.id) === Number(route.params.id)) || null
+);
+
+const categories = computed(() =>
+    Array.from(new Set(s.products.map(p => p.category).filter(Boolean))).sort()
 );
 
 const model = reactive({
     name: '',
     sku: '',
-    category: 'Leadership',
+    category: '',
     type: 'physical',
     price: 0,
     stock: 0,
     status: 'draft',
     short: '',
     description: '',
-    featuresText: ''
+    imagePath: '',
+    imageAlt: ''
 });
 
-const error = ref('');
-
-watch(
-    [existing, () => route.query.draftVersion],
-    ([p, draftVersion]) => {
-        const draft = draftVersion
-            ? s.getProductVersions(p?.id).find(
-                v =>
-                    v.version === Number(draftVersion) &&
-                    v.status === 'draft'
-            )
-            : null;
-
-        if (draft) {
-            p = { ...p, ...draft.snapshot };
-        }
-
-        if (p) {
-            Object.assign(model, {
-                name: p.name,
-                sku: p.sku,
-                category: p.category,
-                type: p.type,
-                price: p.price,
-                stock: p.stock,
-                status: p.status,
-                short: p.short || '',
-                description: p.description || '',
-                featuresText: (p.features || []).join('\n')
-            });
-        }
-    },
-    { immediate: true }
-);
-
-function save() {
+async function loadEditor() {
     error.value = '';
-
-    if (
-        !model.name.trim() ||
-        !model.sku.trim() ||
-        !model.short.trim()
-    ) {
-        error.value = 'Please complete the required fields.';
-        return;
-    }
-
-    if (Number(model.price) < 0 || Number(model.stock) < 0) {
-        error.value = 'Price and stock cannot be negative.';
-        return;
-    }
-
-    if (
-        s.products.some(
-            p =>
-                p.sku.toLowerCase() === model.sku.toLowerCase() &&
-                p.id !== existing.value?.id
-        )
-    ) {
-        error.value = 'SKU must be unique.';
+    if (!route.params.id) {
+        Object.assign(model, {
+            name: '', sku: '', category: categories.value[0] || '',
+            type: 'physical', price: 0, stock: 0, status: 'draft',
+            short: '', description: '', imagePath: '', imageAlt: ''
+        });
         return;
     }
 
     try {
-        s.upsertProduct({
-            ...(existing.value ? { id: existing.value.id } : {}),
+        const result = await api.get('/products/' + route.params.id);
+        let product = result.product;
+
+        if (route.query.draftVersion) {
+            const history = await api.get(`/admin/products/${route.params.id}/versions`);
+            const draft = history.versions.find(v =>
+                Number(v.version) === Number(route.query.draftVersion)
+            );
+            if (draft && draft.snapshot) {
+                product = { ...product, ...draft.snapshot };
+            }
+        }
+
+        Object.assign(model, {
+            name: product.name || '',
+            sku: product.sku || '',
+            category: product.category || '',
+            type: product.type || 'physical',
+            price: Number(product.price || 0),
+            stock: Number(product.stock || 0),
+            status: product.status || 'draft',
+            short: product.short || '',
+            description: product.description || '',
+            imagePath: product.imagePath || '',
+            imageAlt: product.imageAlt || ''
+        });
+    } catch (e) {
+        error.value = e.message;
+    }
+}
+
+watch(
+    () => [route.params.id, route.query.draftVersion],
+    loadEditor,
+    { immediate: true }
+);
+
+async function save() {
+    error.value = '';
+    if (!model.name.trim() || !model.sku.trim() || !model.category.trim()) {
+        error.value = 'Please complete the product name, SKU and category.';
+        return;
+    }
+    if (model.price < 0 || model.stock < 0) {
+        error.value = 'Price and stock cannot be negative.';
+        return;
+    }
+
+    const duplicate = s.products.some(p =>
+        String(p.sku).toLowerCase() === model.sku.trim().toLowerCase() &&
+        Number(p.id) !== Number(route.params.id || 0)
+    );
+    if (duplicate) {
+        error.value = 'SKU must be unique.';
+        return;
+    }
+
+    saving.value = true;
+    try {
+        const payload = {
             name: model.name.trim(),
             sku: model.sku.trim(),
-            category: model.category,
+            category: model.category.trim(),
             type: model.type,
             price: Number(model.price),
-            stock: model.type === 'digital'
-                ? 999
-                : Number(model.stock),
+            stock: model.type === 'digital' ? 999 : Number(model.stock),
             status: model.status,
-            short: model.short,
+            short: model.short.trim(),
             description: model.description,
-            features: model.featuresText
-                .split('\n')
-                .map(x => x.trim())
-                .filter(Boolean)
-        });
+            imagePath: model.imagePath.trim(),
+            imageAlt: model.imageAlt.trim() || model.name.trim()
+        };
 
+        if (route.params.id) {
+            await api.put('/products/' + route.params.id, payload);
+        } else {
+            await api.post('/products', payload);
+        }
+
+        await refreshAdminData(s);
         router.push('/admin/products');
     } catch (e) {
         error.value = e.message;
+    } finally {
+        saving.value = false;
     }
 }
 </script>
@@ -153,7 +172,7 @@ function save() {
             class="alert alert-info"
         >
             You are editing restored draft v{{ route.query.draftVersion }}.
-            Saving will create a new live product version. Review before saving.
+            Saving will create a new product version. Review before saving.
         </p>
 
         <form
@@ -203,16 +222,16 @@ function save() {
                                 Category
                             </label>
 
-                            <select
+                            <input
                                 id="p-category"
                                 v-model="model.category"
-                                class="form-select"
-                            >
-                                <option>Leadership</option>
-                                <option>Personal Growth</option>
-                                <option>Coaching</option>
-                                <option>Digital Tools</option>
-                            </select>
+                                class="form-control"
+                                list="shopnest-categories"
+                                required
+                            />
+                            <datalist id="shopnest-categories">
+                                <option v-for="category in categories" :key="category" :value="category" />
+                            </datalist>
                         </div>
                     </div>
 
@@ -245,19 +264,26 @@ function save() {
                         rows="5"
                     ></textarea>
 
-                    <label
-                        for="p-features"
-                        class="form-label mt-3"
-                    >
-                        Features (one per line)
+                    <label for="p-image-path" class="form-label mt-3">
+                        Product image path
                     </label>
-
-                    <textarea
-                        id="p-features"
-                        v-model="model.featuresText"
+                    <input
+                        id="p-image-path"
+                        v-model="model.imagePath"
                         class="form-control"
-                        rows="4"
-                    ></textarea>
+                        maxlength="255"
+                        placeholder="images/products/product-name.jpg"
+                    />
+
+                    <label for="p-image-alt" class="form-label mt-3">
+                        Product image description
+                    </label>
+                    <input
+                        id="p-image-alt"
+                        v-model="model.imageAlt"
+                        class="form-control"
+                        maxlength="255"
+                    />
                 </div>
 
                 <div class="col-lg-4">
@@ -333,8 +359,7 @@ function save() {
                         </template>
 
                         <p class="small muted mt-3">
-                            Illustrations are generated using built-in visual
-                            styles. File uploads require backend storage.
+                            Image paths are saved in the existing image_path and image_alt database columns. Upload image files separately to the project images folder.
                         </p>
                     </div>
                 </div>
@@ -359,9 +384,10 @@ function save() {
                 <button
                     type="submit"
                     class="btn btn-primary"
+                    :disabled="saving"
                 >
                     <Save :size="17" />
-                    Save product
+                    {{ saving ? 'Saving...' : 'Save product' }}
                 </button>
             </div>
         </form>

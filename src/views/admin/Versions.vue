@@ -1,161 +1,95 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from '@/stores/shop.js';
-import {
-    ArrowLeft,
-    RotateCcw,
-    CheckCircle2,
-    GitCompare,
-    Image as ImageIcon
-} from 'lucide-vue-next';
+import { ArrowLeft, RotateCcw, CheckCircle2, GitCompare, Image as ImageIcon } from 'lucide-vue-next';
 import ProductArt from '@/components/ProductArt.vue';
+import { api } from '@/services/shopApi.js';
 
 const s = useStore();
 const route = useRoute();
 const router = useRouter();
-
-const product = computed(() =>
-    s.products.find(p => p.id === Number(route.params.id))
-);
-
-const versions = computed(() =>
-    s.getProductVersions(Number(route.params.id))
-        .slice()
-        .sort((a, b) => b.version - a.version)
-);
-
+const product = ref(null);
+const versions = ref([]);
 const olderId = ref(null);
 const newerId = ref(null);
 const isConfirming = ref(false);
 const error = ref('');
+const loading = ref(true);
 
-watch(
-    versions,
-    v => {
-        if (!v.length) return;
+async function loadVersions() {
+    loading.value = true;
+    error.value = '';
+    try {
+        const id = Number(route.params.id);
+        const productResult = await api.get('/products/' + id);
+        product.value = productResult.product;
+        const versionResult = await api.get(`/admin/products/${id}/versions`);
+        versions.value = versionResult.versions.map(v => ({
+            ...v,
+            version: Number(v.version),
+            snapshot: v.snapshot || {}
+        }));
+    } catch (e) {
+        error.value = e.message;
+    } finally {
+        loading.value = false;
+    }
+}
 
-        if (!v.some(h => h.version === newerId.value)) {
-            newerId.value = v[0].version;
-        }
+onMounted(loadVersions);
+watch(() => route.params.id, loadVersions);
 
-        if (
-            !v.some(h => h.version === olderId.value) ||
-            olderId.value === newerId.value
-        ) {
-            olderId.value =
-                v.find(h => h.version !== newerId.value)?.version ??
-                v[0].version;
-        }
-    },
-    { immediate: true }
-);
+watch(versions, list => {
+    if (!list.length) return;
+    if (!list.some(v => v.version === newerId.value)) newerId.value = list[0].version;
+    if (!list.some(v => v.version === olderId.value) || olderId.value === newerId.value) {
+        const previous = list.find(v => v.version !== newerId.value);
+        olderId.value = previous ? previous.version : list[0].version;
+    }
+}, { immediate: true });
 
-const oldVersion = computed(() =>
-    versions.value.find(v => v.version === olderId.value)
-);
-
-const newVersion = computed(() =>
-    versions.value.find(v => v.version === newerId.value)
-);
-
-const oldSnap = computed(() =>
-    oldVersion.value?.snapshot || {}
-);
-
-const newSnap = computed(() =>
-    newVersion.value?.snapshot || {}
-);
+const oldVersion = computed(() => versions.value.find(v => v.version === olderId.value));
+const newVersion = computed(() => versions.value.find(v => v.version === newerId.value));
+const oldSnap = computed(() => oldVersion.value ? oldVersion.value.snapshot : {});
+const newSnap = computed(() => newVersion.value ? newVersion.value.snapshot : {});
 
 const comparable = [
-    {
-        key: 'name',
-        label: 'Product name'
-    },
-    {
-        key: 'sku',
-        label: 'SKU'
-    },
-    {
-        key: 'category',
-        label: 'Category'
-    },
-    {
-        key: 'type',
-        label: 'Product type'
-    },
-    {
-        key: 'status',
-        label: 'Publication'
-    },
-    {
-        key: 'short',
-        label: 'Short description'
-    },
-    {
-        key: 'description',
-        label: 'Long description'
-    },
-    {
-        key: 'features',
-        label: 'Specifications / Features'
-    },
-    {
-        key: 'price',
-        label: 'Unit price'
-    },
-    {
-        key: 'image',
-        label: 'Illustration'
-    }
+    { key: 'name', label: 'Product name' },
+    { key: 'sku', label: 'SKU' },
+    { key: 'category', label: 'Category' },
+    { key: 'type', label: 'Product type' },
+    { key: 'status', label: 'Publication' },
+    { key: 'short', label: 'Short description' },
+    { key: 'description', label: 'Long description' },
+    { key: 'price', label: 'Unit price' },
+    { key: 'stock', label: 'Stock' },
+    { key: 'imagePath', label: 'Image path' },
+    { key: 'imageAlt', label: 'Image description' }
 ];
 
 function displayValue(snapshot, key) {
-    if (key === 'features') {
-        return (snapshot.features || []).join('\n') || 'None specified';
-    }
-
-    if (key === 'price') {
-        return `RM ${Number(snapshot.price || 0).toFixed(2)}`;
-    }
-
-    if (key === 'image') {
-        return `${snapshot.emoji || '📦'} · ${snapshot.tone || 'blue'} illustration`;
-    }
-
-    return String(snapshot[key] ?? 'Not specified');
+    if (key === 'price') return `RM ${Number(snapshot.price || 0).toFixed(2)}`;
+    if (key === 'stock') return String(Number(snapshot.stock || 0));
+    return String(snapshot[key] === undefined || snapshot[key] === null || snapshot[key] === '' ? 'Not specified' : snapshot[key]);
 }
 
 function changed(key) {
-    return (
-        displayValue(oldSnap.value, key) !==
-        displayValue(newSnap.value, key)
-    );
+    return displayValue(oldSnap.value, key) !== displayValue(newSnap.value, key);
 }
 
-const changedCount = computed(() =>
-    comparable.filter(f => changed(f.key)).length
-);
+const changedCount = computed(() => comparable.filter(field => changed(field.key)).length);
 
-function restore() {
+async function restore() {
+    if (!product.value || !olderId.value) return;
+    error.value = '';
     try {
-        error.value = '';
-
-        const draftVersion = s.restoreProductVersion(
-            product.value.id,
-            olderId.value
-        );
-
+        const result = await api.post(`/admin/products/${product.value.id}/restore/${olderId.value}`, {});
         isConfirming.value = false;
-
         router.push({
             name: 'admin-product-edit',
-            params: {
-                id: product.value.id
-            },
-            query: {
-                draftVersion: String(draftVersion)
-            }
+            params: { id: product.value.id },
+            query: { draftVersion: String(result.draftVersion) }
         });
     } catch (e) {
         error.value = e.message;
@@ -171,7 +105,9 @@ function formatted(date) {
 </script>
 
 <template>
-    <div v-if="product" class="version-page">
+    <div v-if="loading" class="version-page"><p>Loading version history...</p></div>
+    <div v-else-if="error" class="version-page"><p class="text-danger" role="alert">{{ error }}</p></div>
+    <div v-else-if="product" class="version-page">
         <RouterLink
             class="back-link"
             :to="'/admin/products/' + product.id + '/edit'"
@@ -218,11 +154,7 @@ function formatted(date) {
             </span>
         </div>
 
-        <p class="version-notice">
-            Demo note: the sample earlier history for the Executive Daily
-            Planner is illustrative. Subsequent edits create real snapshots
-            in this browser.
-        </p>
+        <p class="version-notice">Version history is retrieved from the ShopNest database. Restoring a version creates a draft for review; the live product is not changed until you save the draft.</p>
 
         <div class="version-layout">
             <aside class="panel version-sidebar">
@@ -386,7 +318,7 @@ function formatted(date) {
                                     'version-removed': changed(field.key)
                                 }"
                             >
-                                <template v-if="field.key === 'image'">
+                                <template v-if="field.key === 'imagePath'">
                                     <ProductArt
                                         :product="{ ...product, ...oldSnap }"
                                     />
@@ -402,7 +334,7 @@ function formatted(date) {
                                     'version-added': changed(field.key)
                                 }"
                             >
-                                <template v-if="field.key === 'image'">
+                                <template v-if="field.key === 'imagePath'">
                                     <ProductArt
                                         :product="{ ...product, ...newSnap }"
                                     />

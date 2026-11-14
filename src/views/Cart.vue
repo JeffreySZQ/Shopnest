@@ -1,31 +1,40 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useStore } from '@/stores/shop.js';
 import { useCurrencyStore } from '@/stores/currency.js';
-import {
-    Minus,
-    Plus,
-    Trash2,
-    ShoppingBag,
-    ArrowRight
-} from 'lucide-vue-next';
+import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-vue-next';
 import ProductArt from '@/components/ProductArt.vue';
 import PageHeading from '@/components/PageHeading.vue';
+import { api, refreshCart } from '@/services/shopApi.js';
 
-const s = useStore(),
-    currency = useCurrencyStore(),
-    notice = ref('');
+const s = useStore();
+const currency = useCurrencyStore();
+const notice = ref('');
+const busy = ref(false);
 
 const shipping = computed(() =>
     s.cartItems.some(i => i.product.type === 'physical') ? 8 : 0
 );
 
-function qty(i, n) {
+onMounted(async () => {
+    if (!s.user) return;
     try {
-        s.setCartQty(i.productId, n);
-        notice.value = '';
+        await refreshCart(s);
     } catch (e) {
         notice.value = e.message;
+    }
+});
+
+async function qty(item, quantity) {
+    notice.value = '';
+    busy.value = true;
+    try {
+        await api.patch(`/cart/items/${item.productId}`, { quantity });
+        await refreshCart(s);
+    } catch (e) {
+        notice.value = e.message;
+    } finally {
+        busy.value = false;
     }
 }
 </script>
@@ -37,6 +46,10 @@ function qty(i, n) {
             title="Shopping cart"
             description="Review your selection before checking out."
         />
+
+        <p v-if="notice && !s.cartItems.length" class="field-error" role="alert">
+            {{ notice }}
+        </p>
 
         <div v-if="s.cartItems.length" class="cart-grid">
             <div>
@@ -67,7 +80,7 @@ function qty(i, n) {
 
                         <div class="cart-controls">
                             <button
-                                :disabled="i.quantity <= 1"
+                                :disabled="busy || i.quantity <= 1"
                                 :aria-label="'Decrease ' + i.product.name"
                                 @click="qty(i, i.quantity - 1)"
                             >
@@ -78,7 +91,7 @@ function qty(i, n) {
 
                             <button
                                 :aria-label="'Increase ' + i.product.name"
-                                @click="qty(i, i.quantity + 1)"
+                                @click="qty(i, i.quantity + 1)" :disabled="busy"
                             >
                                 <Plus :size="15" />
                             </button>
@@ -86,7 +99,7 @@ function qty(i, n) {
                             <button
                                 class="remove-btn"
                                 :aria-label="'Remove ' + i.product.name"
-                                @click="qty(i, 0)"
+                                @click="qty(i, 0)" :disabled="busy"
                             >
                                 <Trash2 :size="17" />
                                 Remove
@@ -164,11 +177,12 @@ function qty(i, n) {
         <div v-else class="empty-state">
             <ShoppingBag :size="43" />
 
-            <h2>Your cart is feeling a little empty.</h2>
+            <h2>{{ s.user ? 'Your cart is feeling a little empty.' : 'Sign in to view your saved cart.' }}</h2>
 
-            <p>
-                There are good things waiting for you in our collection.
-            </p>
+            <p v-if="!s.user">Your shopping cart is saved to your ShopNest account.</p>
+            <p v-else>There are good things waiting for you in our collection.</p>
+
+            <RouterLink v-if="!s.user" to="/login" class="btn btn-outline-primary mb-2">Sign in</RouterLink>
 
             <RouterLink
                 to="/catalog"

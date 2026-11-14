@@ -16,31 +16,31 @@ import {
 const s = useStore();
 
 const featured = computed(() =>
-    s.published.filter(p => p.featured).slice(0, 4)
+    s.published.slice().sort((a, b) => (b.likes || 0) - (a.likes || 0)).slice(0, 4)
 );
 
-const cats = [
-    {
-        name: 'Leadership',
-        icon: BookOpen,
-        copy: 'Lead with purpose'
-    },
-    {
-        name: 'Personal Growth',
-        icon: Sparkles,
-        copy: 'Make time to reflect'
-    },
-    {
-        name: 'Coaching',
-        icon: HeartHandshake,
-        copy: 'Spark conversations'
-    },
-    {
-        name: 'Digital Tools',
-        icon: Lightbulb,
-        copy: 'Ready when you are'
-    }
-];
+const categoryIcons = {
+    Leadership: BookOpen,
+    'Personal Growth': Sparkles,
+    Coaching: HeartHandshake,
+    Productivity: Lightbulb
+};
+
+const categoryDescriptions = {
+    Leadership: 'Lead with purpose',
+    'Personal Growth': 'Make time to reflect',
+    Coaching: 'Spark conversations',
+    Productivity: 'Make every day count'
+};
+
+const cats = computed(() => {
+    const names = Array.from(new Set(s.published.map(p => p.category).filter(Boolean)));
+    return names.map(name => ({
+        name,
+        icon: categoryIcons[name] || Lightbulb,
+        copy: categoryDescriptions[name] || 'Explore the collection'
+    }));
+});
 </script>
 
 <template>
