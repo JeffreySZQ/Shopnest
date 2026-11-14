@@ -1,24 +1,29 @@
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useStore } from '@/stores/shop.js';
 
 const shop = useStore();
+
+const loading = ref(true);
+const error = ref('');
 
 const API_URL =
     'https://mercury.swin.edu.au/cos30043/s105557394/project/resources/products.php';
 
 onMounted(async () => {
-    // Initialise the existing store first.
+    // Initialise the existing Pinia store.
     shop.init();
 
-    // Retrieve the products from the Mercury database.
+    // Do not display old products while waiting for the database.
+    shop.products = [];
+
     try {
         const response = await fetch(API_URL);
 
         if (!response.ok) {
             throw new Error(
-                'API request failed: ' + response.status
+                'The products API returned HTTP ' + response.status
             );
         }
 
@@ -26,30 +31,47 @@ onMounted(async () => {
 
         if (!data.success || !Array.isArray(data.products)) {
             throw new Error(
-                data.message || 'Invalid products API response.'
+                data.message || 'The API returned an invalid response.'
             );
         }
 
-        // Replace the locally stored product list.
-        shop.products = data.products;
+        // Replace the store's products with the database products.
+        shop.products = data.products.map(product => ({
+            ...product,
 
-        // Save the database products into the existing store.
+            // These properties are used by existing frontend components.
+            features: [],
+            emoji: '📦',
+            tone: 'blue',
+            featured: false
+        }));
+
+        // Save the latest database products in localStorage.
         shop.save();
 
         console.log(
-            'ShopNest products loaded from database:',
+            'Products successfully loaded from the database:',
             data.count
         );
-
-    } catch (error) {
-        console.error(
-            'Could not load database products:',
-            error
-        );
+    } catch (err) {
+        console.error('Unable to load database products:', err);
+        error.value = err.message;
+    } finally {
+        loading.value = false;
     }
 });
 </script>
 
 <template>
-    <RouterView />
+    <main v-if="loading" class="container section">
+        <p>Loading products from the database...</p>
+    </main>
+
+    <main v-else-if="error" class="container section">
+        <h2>Unable to load products</h2>
+        <p>{{ error }}</p>
+        <p>Please refresh the page or try again later.</p>
+    </main>
+
+    <RouterView v-else />
 </template>
