@@ -46,6 +46,7 @@ ShopNest is a e-commerce web application for practical learning resources, journ
 - Order management and fulfillment updates
 - Cancellation request review
 - Activity log
+Admin account: admin@example.com (ShopnestDemo123!)
 
 ## Architecture
 
