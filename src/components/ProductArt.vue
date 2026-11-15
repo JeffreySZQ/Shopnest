@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <script setup>
 import { computed, ref, watch } from 'vue';
 
@@ -20,6 +21,31 @@ const imageSrc = computed(() => {
 watch(() => props.product.imagePath, () => {
     imageFailed.value = false;
 });
+=======
+<script>
+export default {
+    name: 'ProductArt',
+    props: {
+        product: { type: Object, required: true },
+        large: { type: Boolean, default: false }
+    },
+    data() {
+        return { imageFailed: false };
+    },
+    computed: {
+        imageSrc() {
+            if (!this.product || !this.product.imagePath) return '';
+            const path = String(this.product.imagePath).replace(/^\/+/, '');
+            return `${import.meta.env.BASE_URL}${path}`;
+        }
+    },
+    watch: {
+        'product.imagePath'() {
+            this.imageFailed = false;
+        }
+    }
+};
+>>>>>>> origin/main
 </script>
 
 <template>

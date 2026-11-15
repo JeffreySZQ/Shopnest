@@ -1,13 +1,20 @@
+<<<<<<< HEAD
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from '@/stores/shop.js';
 import { useRoute } from 'vue-router';
+=======
+<script>
+import { mapStores } from 'pinia';
+import { useStore } from '@/stores/shop.js';
+>>>>>>> origin/main
 import PageHeading from '@/components/PageHeading.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import { ArrowLeft, Download, Ban } from 'lucide-vue-next';
 import { downloadReceipt } from '@/utils/receipt.js';
 import { api, refreshOrders } from '@/services/shopApi.js';
 
+<<<<<<< HEAD
 const store = useStore();
 const route = useRoute();
 const order = ref(null);
@@ -70,6 +77,65 @@ function demoDownload() {
     a.click();
     URL.revokeObjectURL(a.href);
 }
+=======
+export default {
+    name: 'OrderDetailView',
+    components: { PageHeading, StatusBadge, ArrowLeft, Download, Ban },
+    data() { return { order: null, notice: '', error: '', busy: false, loading: true }; },
+    computed: {
+        ...mapStores(useStore),
+        store() { return this.shopStore; },
+        canCancel() {
+            return this.order &&
+                ['processing', 'digital delivered'].includes(this.order.fulfillmentStatus) &&
+                !['pending', 'approved'].includes(this.order.cancellationStatus);
+        }
+    },
+    async mounted() { await this.loadOrder(); },
+    watch: {
+        '$route.params.id'() { this.loadOrder(); }
+    },
+    methods: {
+        async loadOrder() {
+            this.loading = true;
+            this.error = '';
+            try {
+                const result = await api.get('/orders/' + encodeURIComponent(this.$route.params.id));
+                this.order = result.order;
+            } catch (error) {
+                this.error = error.message;
+            } finally { this.loading = false; }
+        },
+        getReceipt() {
+            this.error = '';
+            try { downloadReceipt(this.order); }
+            catch (error) { this.error = error.message; }
+        },
+        async cancelOrder() {
+            if (!this.order) return;
+            if (!window.confirm('Request cancellation? An administrator must review it. No real refund will be issued.')) return;
+            this.busy = true;
+            this.error = '';
+            try {
+                await api.post('/orders/' + encodeURIComponent(this.order.id) + '/cancellation', {});
+                await refreshOrders(this.store);
+                await this.loadOrder();
+                this.notice = 'Cancellation requested. An administrator can review it. No actual refund has been issued.';
+            } catch (error) { this.error = error.message; }
+            finally { this.busy = false; }
+        },
+        demoDownload() {
+            const blob = new Blob([`ShopNest demo digital access notice\nThis is a sample file, not a purchased product.`], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.download = 'shopnest-demo-access.txt';
+            anchor.click();
+            URL.revokeObjectURL(url);
+        }
+    }
+};
+>>>>>>> origin/main
 </script>
 
 <template>
@@ -153,6 +219,10 @@ function demoDownload() {
 
                         <p class="small muted">
                             {{ order.email }}
+<<<<<<< HEAD
+=======
+                            <span v-if="order.phone"> · {{ order.phone }}</span>
+>>>>>>> origin/main
                         </p>
 
                         <p v-if="order.address">
@@ -165,6 +235,7 @@ function demoDownload() {
                             class="order-actions"
                             aria-label="Order actions"
                         >
+<<<<<<< HEAD
                             <button
                                 type="button"
                                 class="btn btn-primary w-100"
@@ -195,6 +266,16 @@ function demoDownload() {
                                         : 'Cancel / Request Refund'
                                 }}
                             </button>
+=======
+                            <v-btn color="primary" block :disabled="order.paymentStatus !== 'paid'" @click="getReceipt">
+                                <Download :size="18" aria-hidden="true" /> Download PDF Receipt
+                            </v-btn>
+
+                            <v-btn color="error" variant="outlined" block :disabled="!canCancel || busy" :loading="busy" @click="cancelOrder">
+                                <Ban :size="18" aria-hidden="true" />
+                                {{ order.cancellationStatus === 'pending' ? 'Cancellation requested' : 'Cancel / Request Refund' }}
+                            </v-btn>
+>>>>>>> origin/main
                         </div>
 
                         <p class="small muted mt-3">
@@ -210,6 +291,7 @@ function demoDownload() {
                             Previous cancellation request was declined.
                         </p>
 
+<<<<<<< HEAD
                         <p
                             v-if="notice"
                             class="form-notice mt-2"
@@ -225,6 +307,14 @@ function demoDownload() {
                         >
                             {{ error }}
                         </p>
+=======
+                        <v-alert v-if="notice" type="info" variant="tonal" class="mt-2" role="status">
+                            {{ notice }}
+                        </v-alert>
+                        <v-alert v-if="error" type="error" variant="tonal" class="mt-2" role="alert">
+                            {{ error }}
+                        </v-alert>
+>>>>>>> origin/main
 
                         <div
                             v-if="order.items.some(item => item.type === 'digital')"
@@ -237,6 +327,7 @@ function demoDownload() {
                                 Real products require secure backend file delivery.
                             </p>
 
+<<<<<<< HEAD
                             <button
                                 class="btn btn-outline-primary btn-sm"
                                 @click="demoDownload"
@@ -244,6 +335,11 @@ function demoDownload() {
                                 <Download :size="16" />
                                 Download sample notice
                             </button>
+=======
+                            <v-btn variant="outlined" color="primary" size="small" @click="demoDownload">
+                                <Download :size="16" /> Download sample notice
+                            </v-btn>
+>>>>>>> origin/main
                         </div>
                     </div>
                 </div>

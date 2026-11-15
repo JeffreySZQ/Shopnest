@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <script setup>
 import { computed } from 'vue'
 import { useStore } from '@/stores/shop.js'
@@ -34,6 +35,40 @@ const downloads = computed(() =>
 const likes = computed(() =>
   s.liked[s.user?.id]?.length || 0
 )
+=======
+<script>
+import { mapStores } from 'pinia';
+import { useStore } from '@/stores/shop.js';
+import { ShoppingBag, Package, Heart, ArrowRight, UserRound } from 'lucide-vue-next';
+import PageHeading from '@/components/PageHeading.vue';
+import StatusBadge from '@/components/StatusBadge.vue';
+import { refreshCustomerData } from '@/services/shopApi.js';
+
+export default {
+    name: 'DashboardView',
+    components: { ShoppingBag, Package, Heart, ArrowRight, UserRound, PageHeading, StatusBadge },
+    computed: {
+        ...mapStores(useStore),
+        s() { return this.shopStore; },
+        latest() { return this.s.myOrders.slice(0, 3); },
+        downloads() {
+            return this.s.myOrders
+                .filter(order => order.paymentStatus === 'paid')
+                .reduce((count, order) => count + order.items
+                    .filter(item => item.type === 'digital')
+                    .reduce((total, item) => total + item.quantity, 0), 0);
+        },
+        likes() {
+            return this.s.liked[this.s.user ? this.s.user.id : '']?.length || 0;
+        }
+    },
+    async mounted() {
+        try { await refreshCustomerData(this.s); }
+        catch (error) { this.loadError = error.message; }
+    },
+    data() { return { loadError: '' }; }
+};
+>>>>>>> origin/main
 </script>
 
 <template>

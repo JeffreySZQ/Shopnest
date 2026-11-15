@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -284,6 +285,147 @@ const hasActiveFilters = computed(() =>
   type.value !== '' ||
   sort.value !== 'featured'
 )
+=======
+<script>
+import { mapStores } from 'pinia';
+import { useStore } from '@/stores/shop.js';
+import { SlidersHorizontal, Search } from 'lucide-vue-next';
+import ProductCard from '@/components/ProductCard.vue';
+import PageHeading from '@/components/PageHeading.vue';
+
+function parseCategories(value) {
+    if (Array.isArray(value)) {
+        return value.flatMap(item => String(item).split(',')).filter(Boolean);
+    }
+    return String(value || '').split(',').filter(Boolean);
+}
+
+function parseType(value) {
+    const selected = Array.isArray(value) ? value[0] : value;
+    const type = String(selected || '');
+    return ['physical', 'digital'].includes(type) ? type : '';
+}
+
+export default {
+    name: 'CatalogView',
+    components: { SlidersHorizontal, Search, ProductCard, PageHeading },
+    data() {
+        return {
+            query: String(this.$route.query.q || ''),
+            category: parseCategories(this.$route.query.category),
+            type: parseType(this.$route.query.type),
+            sort: String(this.$route.query.sort || 'featured'),
+            page: Math.max(1, Number(this.$route.query.page || 1) || 1),
+            filtersOpen: false,
+            perPage: 9
+        };
+    },
+    computed: {
+        ...mapStores(useStore),
+        s() { return this.shopStore; },
+        categories() {
+            return [...new Set(this.s.published.map(product => product.category).filter(Boolean))].sort();
+        },
+        onlyLiked() {
+            return this.$route.query.liked === 'true';
+        },
+        filtered() {
+            const likedIds = this.s.liked[this.s.user ? this.s.user.id : ''] || [];
+            const searchText = this.query.trim().toLowerCase();
+
+            const items = this.s.published.filter(product => {
+                const searchable = [product.name, product.category, product.short || ''].join(' ').toLowerCase();
+                const matchesSearch = !searchText || searchable.includes(searchText);
+                const matchesCategory = !this.category.length || this.category.includes(product.category);
+                const matchesType = !this.type || product.type === this.type;
+                const matchesLiked = !this.onlyLiked || likedIds.some(id => String(id) === String(product.id));
+                return matchesSearch && matchesCategory && matchesType && matchesLiked;
+            });
+
+            if (this.sort === 'featured' || this.sort === 'popular') {
+                items.sort((a, b) => Number(b.likes || 0) - Number(a.likes || 0));
+            } else if (this.sort === 'price-low') {
+                items.sort((a, b) => a.price - b.price);
+            } else if (this.sort === 'price-high') {
+                items.sort((a, b) => b.price - a.price);
+            } else if (this.sort === 'name') {
+                items.sort((a, b) => a.name.localeCompare(b.name));
+            }
+
+            return items;
+        },
+        pages() {
+            return Math.max(1, Math.ceil(this.filtered.length / this.perPage));
+        },
+        shown() {
+            const safePage = Math.min(this.page, this.pages);
+            return this.filtered.slice((safePage - 1) * this.perPage, safePage * this.perPage);
+        },
+        hasActiveFilters() {
+            return this.query.trim() !== '' || this.category.length > 0 || this.type !== '' || this.sort !== 'featured';
+        },
+        sortOptions() {
+            return [
+                { title: 'Featured', value: 'featured' },
+                { title: 'Price: low to high', value: 'price-low' },
+                { title: 'Price: high to low', value: 'price-high' },
+                { title: 'Most liked', value: 'popular' },
+                { title: 'Name A–Z', value: 'name' }
+            ];
+        }
+    },
+    watch: {
+        query() { this.page = 1; this.sync(); },
+        category: { deep: true, handler() { this.page = 1; this.sync(); } },
+        type() { this.page = 1; this.sync(); },
+        sort() { this.page = 1; this.sync(); },
+        page() { this.sync(); },
+        onlyLiked() { this.page = 1; },
+        '$route.query'(query) {
+            const nextQuery = String(query.q || '');
+            const nextCategories = parseCategories(query.category);
+            const nextType = parseType(query.type);
+            const nextSort = String(query.sort || 'featured');
+            const nextPage = Math.max(1, Number(query.page || 1) || 1);
+
+            if (this.query !== nextQuery) this.query = nextQuery;
+            if (this.category.join(',') !== nextCategories.join(',')) this.category = nextCategories;
+            if (this.type !== nextType) this.type = nextType;
+            if (this.sort !== nextSort) this.sort = nextSort;
+            if (this.page !== nextPage) this.page = nextPage;
+        }
+    },
+    methods: {
+        sync() {
+            const nextQuery = {
+                q: this.query || undefined,
+                category: this.category.length ? this.category.join(',') : undefined,
+                type: this.type || undefined,
+                sort: this.sort !== 'featured' ? this.sort : undefined,
+                page: this.page > 1 ? String(this.page) : undefined,
+                liked: this.onlyLiked ? 'true' : undefined
+            };
+
+            const cleaned = Object.fromEntries(
+                Object.entries(nextQuery).filter(([, value]) => value !== undefined)
+            );
+            const current = this.$route.query;
+            const same = Object.keys(cleaned).length === Object.keys(current).length &&
+                Object.entries(cleaned).every(([key, value]) => String(current[key] || '') === String(value));
+
+            if (!same) this.$router.replace({ query: cleaned });
+        },
+        clear() {
+            this.query = '';
+            this.category = [];
+            this.type = '';
+            this.sort = 'featured';
+            this.page = 1;
+            this.sync();
+        }
+    }
+};
+>>>>>>> origin/main
 </script>
 
 <template>
@@ -322,6 +464,7 @@ const hasActiveFilters = computed(() =>
     <div class="catalog-toolbar">
 
       <!-- Search bar -->
+<<<<<<< HEAD
       <label class="search-box">
         <Search
           :size="20"
@@ -343,10 +486,35 @@ const hasActiveFilters = computed(() =>
       <button
         type="button"
         class="btn btn-outline-primary mobile-filter-btn"
+=======
+      <div class="sn-field-group catalog-search-group">
+        <label for="catalog-search" class="sn-field-label">
+          Search products
+        </label>
+        <v-text-field
+          id="catalog-search"
+          v-model="query"
+          placeholder="Search planners, workbooks, templates..."
+          prepend-inner-icon="mdi-magnify"
+          variant="outlined"
+          density="comfortable"
+          clearable
+          hide-details
+          class="catalog-search"
+        />
+      </div>
+
+      <!-- Mobile filters button -->
+      <v-btn
+        variant="outlined"
+        color="primary"
+        class="mobile-filter-btn"
+>>>>>>> origin/main
         :aria-expanded="filtersOpen"
         aria-controls="catalog-filter-panel"
         @click="filtersOpen = !filtersOpen"
       >
+<<<<<<< HEAD
         <SlidersHorizontal
           :size="17"
           aria-hidden="true"
@@ -384,6 +552,28 @@ const hasActiveFilters = computed(() =>
           </option>
         </select>
       </label>
+=======
+        <SlidersHorizontal :size="17" /> Filters
+      </v-btn>
+
+      <!-- Sorting dropdown -->
+      <div class="sn-field-group catalog-sort-group">
+        <label for="catalog-sort" class="sn-field-label">
+          Sort by
+        </label>
+        <v-select
+          id="catalog-sort"
+          v-model="sort"
+          :items="sortOptions"
+          item-title="title"
+          item-value="value"
+          variant="outlined"
+          density="comfortable"
+          hide-details
+          class="catalog-sort"
+        />
+      </div>
+>>>>>>> origin/main
 
     </div>
 
@@ -407,6 +597,7 @@ const hasActiveFilters = computed(() =>
         <!-- CATEGORY: MULTIPLE SELECTION -->
         <fieldset class="filter-group">
           <legend>Category</legend>
+<<<<<<< HEAD
 
           <label
             v-for="c in categories"
@@ -421,11 +612,24 @@ const hasActiveFilters = computed(() =>
 
             <span>{{ c }}</span>
           </label>
+=======
+          <v-checkbox
+            v-for="c in categories"
+            :key="c"
+            v-model="category"
+            :label="c"
+            :value="c"
+            density="compact"
+            hide-details
+            class="catalog-filter-check"
+          />
+>>>>>>> origin/main
         </fieldset>
 
         <!-- PRODUCT TYPE: SINGLE SELECTION -->
         <fieldset class="filter-group">
           <legend>Product type</legend>
+<<<<<<< HEAD
 
           <!-- All products -->
           <label class="filter-option">
@@ -481,6 +685,24 @@ const hasActiveFilters = computed(() =>
         >
           Show Results
         </button>
+=======
+          <v-radio-group v-model="type" hide-details density="compact">
+            <v-radio label="All products" value="" />
+            <v-radio label="Physical" value="physical" />
+            <v-radio label="Digital" value="digital" />
+          </v-radio-group>
+        </fieldset>
+
+        <!-- Clear All Filters -->
+        <v-btn block variant="outlined" color="primary" class="clear-filters-btn" @click="clear">
+          Clear All Filters
+        </v-btn>
+
+        <!-- Mobile show results -->
+        <v-btn color="primary" block class="d-lg-none mt-2" @click="filtersOpen = false">
+          Show Results
+        </v-btn>
+>>>>>>> origin/main
 
       </aside>
 
@@ -550,6 +772,7 @@ const hasActiveFilters = computed(() =>
             }}
           </p>
 
+<<<<<<< HEAD
           <button
             v-if="hasActiveFilters"
             type="button"
@@ -558,6 +781,11 @@ const hasActiveFilters = computed(() =>
           >
             Clear filters
           </button>
+=======
+          <v-btn v-if="hasActiveFilters" color="primary" @click="clear">
+            Clear filters
+          </v-btn>
+>>>>>>> origin/main
 
           <RouterLink
             v-else
@@ -569,6 +797,7 @@ const hasActiveFilters = computed(() =>
         </div>
 
         <!-- Pagination -->
+<<<<<<< HEAD
         <nav
           v-if="pages > 1"
           class="page-controls"
@@ -597,6 +826,17 @@ const hasActiveFilters = computed(() =>
             Next
           </button>
         </nav>
+=======
+        <div v-if="pages > 1" class="d-flex justify-content-center mt-4" aria-label="Catalog pagination">
+          <v-pagination
+            v-model="page"
+            :length="pages"
+            :total-visible="5"
+            rounded="circle"
+            density="comfortable"
+          />
+        </div>
+>>>>>>> origin/main
 
       </div>
     </div>

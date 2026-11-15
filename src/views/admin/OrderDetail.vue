@@ -1,11 +1,17 @@
+<<<<<<< HEAD
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+=======
+<script>
+import { mapStores } from 'pinia';
+>>>>>>> origin/main
 import { useStore } from '@/stores/shop.js';
 import { ArrowLeft, Save } from 'lucide-vue-next';
 import StatusBadge from '@/components/StatusBadge.vue';
 import { api, refreshAdminData } from '@/services/shopApi.js';
 
+<<<<<<< HEAD
 const s = useStore();
 const route = useRoute();
 const o = ref(null);
@@ -62,6 +68,57 @@ async function update() {
         busy.value = false;
     }
 }
+=======
+export default {
+    name: 'AdminOrderDetailView',
+    components: { ArrowLeft, Save, StatusBadge },
+    data() { return { o: null, newStatus: '', notice: '', busy: false, loading: true }; },
+    computed: {
+        ...mapStores(useStore),
+        s() { return this.shopStore; }
+    },
+    async mounted() {
+        try { await this.loadOrder(); }
+        catch (error) { this.notice = error.message; }
+    },
+    watch: { '$route.params.id'() { this.loadOrder(); } },
+    methods: {
+        async loadOrder() {
+            this.loading = true;
+            const result = await api.get('/admin/orders/' + encodeURIComponent(this.$route.params.id));
+            this.o = result.order;
+            this.newStatus = this.o.fulfillmentStatus;
+            this.loading = false;
+        },
+        async decide(approve) {
+            if (!this.o) return;
+            this.busy = true;
+            this.notice = '';
+            try {
+                await api.post('/admin/cancellations/' + encodeURIComponent(this.o.id), { approve });
+                await refreshAdminData(this.s);
+                await this.loadOrder();
+                this.notice = approve
+                    ? 'Cancellation approved. Refund status is simulated; no money was returned.'
+                    : 'Cancellation request declined.';
+            } catch (error) { this.notice = error.message; }
+            finally { this.busy = false; }
+        },
+        async update() {
+            if (!this.newStatus || !this.o) return;
+            this.busy = true;
+            this.notice = '';
+            try {
+                await api.patch('/admin/orders/' + encodeURIComponent(this.o.id), { fulfillmentStatus: this.newStatus });
+                await refreshAdminData(this.s);
+                await this.loadOrder();
+                this.notice = 'Order fulfillment status updated.';
+            } catch (error) { this.notice = error.message; }
+            finally { this.busy = false; }
+        }
+    }
+};
+>>>>>>> origin/main
 </script>
 
 <template>
@@ -149,6 +206,11 @@ async function update() {
                             <strong>{{ o.customer }}</strong>
                             <br />
                             {{ o.email }}
+<<<<<<< HEAD
+=======
+                            <br />
+                            <span v-if="o.phone">{{ o.phone }}</span>
+>>>>>>> origin/main
                         </p>
 
                         <p v-if="o.address">
@@ -169,6 +231,7 @@ async function update() {
                             </p>
 
                             <div class="d-flex flex-wrap gap-2">
+<<<<<<< HEAD
                                 <button
                                     class="btn btn-outline-danger btn-sm"
                                     @click="decide(true)" :disabled="busy"
@@ -182,6 +245,15 @@ async function update() {
                                 >
                                     Decline
                                 </button>
+=======
+                                <v-btn color="error" variant="outlined" size="small" :disabled="busy" @click="decide(true)">
+                                    Approve cancellation (demo)
+                                </v-btn>
+
+                                <v-btn color="primary" variant="outlined" size="small" :disabled="busy" @click="decide(false)">
+                                    Decline
+                                </v-btn>
+>>>>>>> origin/main
                             </div>
                         </div>
 
@@ -194,6 +266,7 @@ async function update() {
                             Do not use these controls for real-world fulfillment.
                         </p>
 
+<<<<<<< HEAD
                         <label
                             for="fulfillment-state"
                             class="form-label"
@@ -229,6 +302,31 @@ async function update() {
                         >
                             {{ notice }}
                         </p>
+=======
+                        <v-select
+                            id="fulfillment-state"
+                            v-model="newStatus"
+                            :items="[
+                                { title: 'Processing', value: 'processing' },
+                                { title: 'Shipped', value: 'shipped' },
+                                { title: 'Delivered', value: 'delivered' },
+                                { title: 'Cancelled', value: 'cancelled' }
+                            ]"
+                            item-title="title"
+                            item-value="value"
+                            label="Update status"
+                            variant="outlined"
+                            density="comfortable"
+                        />
+
+                        <v-btn color="primary" block class="mt-3" :disabled="!newStatus || busy" :loading="busy" @click="update">
+                            <Save :size="17" /> Save status
+                        </v-btn>
+
+                        <v-alert v-if="notice" type="info" variant="tonal" density="compact" class="mt-2" role="status">
+                            {{ notice }}
+                        </v-alert>
+>>>>>>> origin/main
                     </div>
                 </div>
             </div>

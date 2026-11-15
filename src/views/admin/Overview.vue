@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <script setup>
 import { computed } from 'vue';
 import { useStore } from '@/stores/shop.js';
@@ -40,6 +41,43 @@ const bars = computed(() => {
 const max = computed(() =>
     Math.max(100, ...bars.value.map(d => d.value))
 );
+=======
+<script>
+import { mapStores } from 'pinia';
+import { useStore } from '@/stores/shop.js';
+import { Wallet, ShoppingBag, Package, Truck, ArrowRight } from 'lucide-vue-next';
+import StatusBadge from '@/components/StatusBadge.vue';
+import { refreshAdminData } from '@/services/shopApi.js';
+
+export default {
+    name: 'AdminOverviewView',
+    components: { Wallet, ShoppingBag, Package, Truck, ArrowRight, StatusBadge },
+    computed: {
+        ...mapStores(useStore),
+        s() { return this.shopStore; },
+        recent() { return this.s.orders.slice().reverse().slice(0, 5); },
+        todo() { return this.s.orders.filter(order => order.fulfillmentStatus === 'processing'); },
+        bars() {
+            const days = Array.from({ length: 7 }, (_, index) => {
+                const date = new Date();
+                date.setDate(date.getDate() - (6 - index));
+                return date.toISOString().slice(0, 10);
+            });
+            return days.map(day => ({
+                date: day,
+                value: this.s.orders.filter(order => String(order.createdAt).slice(0, 10) === day)
+                    .reduce((sum, order) => sum + Number(order.total || 0), 0)
+            }));
+        },
+        max() { return Math.max(100, ...this.bars.map(item => item.value)); }
+    },
+    async mounted() {
+        try { await refreshAdminData(this.s); }
+        catch (error) { this.loadError = error.message; }
+    },
+    data() { return { loadError: '' }; }
+};
+>>>>>>> origin/main
 </script>
 
 <template>
@@ -135,7 +173,11 @@ const max = computed(() =>
                     <details class="mt-3">
                         <summary>View sales as a table</summary>
 
+<<<<<<< HEAD
                         <table class="table mt-2">
+=======
+                        <v-table class="mt-2" density="comfortable">
+>>>>>>> origin/main
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -152,7 +194,11 @@ const max = computed(() =>
                                     <td>{{ b.value.toFixed(2) }}</td>
                                 </tr>
                             </tbody>
+<<<<<<< HEAD
                         </table>
+=======
+                        </v-table>
+>>>>>>> origin/main
                     </details>
                 </section>
             </div>

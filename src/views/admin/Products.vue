@@ -1,4 +1,5 @@
 
+<<<<<<< HEAD
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from '@/stores/shop.js';
@@ -164,6 +165,103 @@ async function remove(product) {
 
 // Load database products when the page opens.
 onMounted(loadProducts);
+=======
+<script>
+import { mapStores } from 'pinia';
+import { useStore } from '@/stores/shop.js';
+import { api, refreshAdminData } from '@/services/shopApi.js';
+
+export default {
+    name: 'AdminProductsView',
+    data() {
+        return {
+            products: [], loading: false, deleting: false, error: '',
+            search: '', type: '', status: '', page: 1, pageSize: 7,
+            pageSizes: [7, 10, 15, 25],
+            typeOptions: [
+                { title: 'All types', value: '' },
+                { title: 'Physical', value: 'physical' },
+                { title: 'Digital', value: 'digital' }
+            ],
+            statusOptions: [
+                { title: 'All statuses', value: '' },
+                { title: 'Published', value: 'published' },
+                { title: 'Draft', value: 'draft' },
+                { title: 'Archived', value: 'archived' }
+            ]
+        };
+    },
+    computed: {
+        ...mapStores(useStore),
+        s() { return this.shopStore; },
+        filtered() {
+            const keyword = String(this.search || '').trim().toLowerCase();
+            return this.products.filter(product =>
+                (!keyword || (product.name + ' ' + product.sku).toLowerCase().includes(keyword)) &&
+                (!this.type || product.type === this.type) &&
+                (!this.status || product.status === this.status)
+            );
+        },
+        totalPages() { return Math.max(1, Math.ceil(this.filtered.length / this.pageSize)); },
+        shown() {
+            const start = (this.page - 1) * this.pageSize;
+            return this.filtered.slice(start, start + this.pageSize);
+        }
+    },
+    watch: {
+        search() { this.resetPage(); },
+        type() { this.resetPage(); },
+        status() { this.resetPage(); },
+        pageSize() { this.resetPage(); }
+    },
+    mounted() { this.loadProducts(); },
+    methods: {
+        resetPage() { this.page = 1; },
+        async loadProducts() {
+            this.loading = true;
+            this.error = '';
+            try {
+                const results = await refreshAdminData(this.s);
+                this.products = (results[0].products || []).map(product => ({
+                    ...product,
+                    id: Number(product.id),
+                    price: Number(product.price),
+                    stock: Number(product.stock)
+                }));
+                this.page = Math.min(this.page, this.totalPages);
+            } catch (error) {
+                this.error = error.message;
+            } finally {
+                this.loading = false;
+            }
+        },
+        statusColor(value) {
+            if (value === 'published') return 'success';
+            if (value === 'draft') return 'warning';
+            if (value === 'archived') return 'error';
+            return 'secondary';
+        },
+        async remove(product) {
+            if (product.status === 'archived') return;
+            const confirmed = window.confirm(
+                `Archive ${product.name}? It will no longer appear in the public catalogue, and historical orders will be retained.`
+            );
+            if (!confirmed) return;
+            this.error = '';
+            this.deleting = true;
+            try {
+                await api.delete('/products/' + product.id);
+                await this.loadProducts();
+                this.page = Math.min(this.page, this.totalPages);
+            } catch (error) {
+                this.error = error.message;
+            } finally {
+                this.deleting = false;
+            }
+        }
+    }
+};
+>>>>>>> origin/main
 </script>
 
 <template>
@@ -222,6 +320,7 @@ onMounted(loadProducts);
 
                 <!-- Search -->
                 <div class="col-12 col-lg-5">
+<<<<<<< HEAD
 
                     <v-text-field
                         v-model="search"
@@ -234,10 +333,27 @@ onMounted(loadProducts);
                         @update:model-value="resetPage"
                     />
 
+=======
+                    <div class="sn-field-group">
+                        <label for="admin-product-search" class="sn-field-label">Search products</label>
+                        <v-text-field
+                            id="admin-product-search"
+                            v-model="search"
+                            placeholder="Search product name or SKU"
+                            prepend-inner-icon="mdi-magnify"
+                            variant="outlined"
+                            density="comfortable"
+                            clearable
+                            hide-details
+                            @update:model-value="resetPage"
+                        />
+                    </div>
+>>>>>>> origin/main
                 </div>
 
                 <!-- Product Type -->
                 <div class="col-6 col-lg-3">
+<<<<<<< HEAD
 
                     <v-select
                         v-model="type"
@@ -251,10 +367,27 @@ onMounted(loadProducts);
                         @update:model-value="resetPage"
                     />
 
+=======
+                    <div class="sn-field-group">
+                        <label for="admin-product-type" class="sn-field-label">Product type</label>
+                        <v-select
+                            id="admin-product-type"
+                            v-model="type"
+                            :items="typeOptions"
+                            item-title="title"
+                            item-value="value"
+                            variant="outlined"
+                            density="comfortable"
+                            hide-details
+                            @update:model-value="resetPage"
+                        />
+                    </div>
+>>>>>>> origin/main
                 </div>
 
                 <!-- Status -->
                 <div class="col-6 col-lg-2">
+<<<<<<< HEAD
 
                     <v-select
                         v-model="status"
@@ -268,10 +401,27 @@ onMounted(loadProducts);
                         @update:model-value="resetPage"
                     />
 
+=======
+                    <div class="sn-field-group">
+                        <label for="admin-product-status" class="sn-field-label">Status</label>
+                        <v-select
+                            id="admin-product-status"
+                            v-model="status"
+                            :items="statusOptions"
+                            item-title="title"
+                            item-value="value"
+                            variant="outlined"
+                            density="comfortable"
+                            hide-details
+                            @update:model-value="resetPage"
+                        />
+                    </div>
+>>>>>>> origin/main
                 </div>
 
                 <!-- Rows Per Page -->
                 <div class="col-6 col-lg-2">
+<<<<<<< HEAD
 
                     <v-select
                         v-model="pageSize"
@@ -283,6 +433,20 @@ onMounted(loadProducts);
                         @update:model-value="resetPage"
                     />
 
+=======
+                    <div class="sn-field-group">
+                        <label for="admin-product-page-size" class="sn-field-label">Rows per page</label>
+                        <v-select
+                            id="admin-product-page-size"
+                            v-model="pageSize"
+                            :items="pageSizes"
+                            variant="outlined"
+                            density="comfortable"
+                            hide-details
+                            @update:model-value="resetPage"
+                        />
+                    </div>
+>>>>>>> origin/main
                 </div>
 
             </div>

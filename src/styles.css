@@ -1705,10 +1705,17 @@ img {
 }
 /* Product version history and side-by-side comparison */
 .version-layout {
+<<<<<<< HEAD
     display: grid;
     grid-template-columns: 260px minmax(0, 1fr);
     gap: 18px;
     align-items: start;
+=======
+    display:grid;
+    grid-template-columns:225px minmax(0,1fr);
+    gap:18px;
+    align-items:start
+>>>>>>> origin/main
 }
 .version-page h2 {
     font-size:1.05rem;
@@ -1745,16 +1752,24 @@ img {
     margin:0 0 22px
 }
 .version-sidebar {
+<<<<<<< HEAD
     padding: 18px;
     display: flex;
     flex-direction: column;
     gap: 10px;
     min-width: 0;
+=======
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    gap:10px
+>>>>>>> origin/main
 }
 .version-sidebar h2 {
     margin-bottom:0
 }
 .version-tile {
+<<<<<<< HEAD
     width: 100%;
     height: auto;
     min-height: 0;
@@ -1818,6 +1833,19 @@ img {
     white-space: normal;
     overflow-wrap: anywhere;
     word-break: break-word;
+=======
+    width:100%;
+    text-align:left;
+    border:1px solid #d5dfec;
+    background:white;
+    border-radius:10px;
+    padding:13px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    color:#14243b;
+    cursor:pointer
+>>>>>>> origin/main
 }
 .version-tile.selected {
     background:#edf2ff;
@@ -1826,6 +1854,7 @@ img {
 .version-tile:hover {
     border-color:#234f9c
 }
+<<<<<<< HEAD
 .version-tile-note {
     color: #14243b;
 }
@@ -1834,6 +1863,18 @@ img {
     display: flex;
     flex-direction: column;
     gap: 18px;
+=======
+.version-tile small {
+    font-size:.72rem;
+    color:#495a70;
+    overflow-wrap:anywhere
+}
+.version-main {
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:18px
+>>>>>>> origin/main
 }
 .version-selectors,.version-restore,.version-confirm {
     padding:22px
@@ -1988,3 +2029,773 @@ img {
 .admin-vuetify-form .v-btn {
     text-transform: none;
 }
+<<<<<<< HEAD
+=======
+
+/* --------------------------------------------------------------------------
+   Accessible Vuetify authentication forms and responsive refinements
+   -------------------------------------------------------------------------- */
+.auth-wrap {
+    width: 100%;
+    min-height: clamp(520px, calc(100svh - 170px), 900px);
+    padding: clamp(30px, 5vw, 68px) 16px;
+    display: grid;
+    place-items: center;
+}
+
+.auth-card.v-card {
+    width: min(100%, 520px);
+    margin-inline: auto;
+    padding: 0;
+    overflow: visible;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: var(--surface);
+    box-shadow: 0 18px 54px rgba(20, 36, 59, .09);
+}
+
+.auth-card-content.v-card-text {
+    padding: clamp(24px, 4.5vw, 42px);
+}
+
+.auth-card h1 {
+    margin: 0 0 10px;
+    color: var(--ink);
+    font-size: clamp(1.8rem, 4vw, 2.35rem);
+    font-weight: 850;
+    line-height: 1.14;
+    letter-spacing: -.045em;
+    overflow-wrap: anywhere;
+}
+
+.auth-intro {
+    max-width: 42ch;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.65;
+}
+
+.auth-form {
+    margin-top: 26px;
+}
+
+.auth-card .v-field {
+    margin-bottom: 5px;
+}
+
+.auth-card .v-field__input {
+    min-height: 54px;
+}
+
+.auth-card .v-label,
+.auth-card .v-field-label {
+    font-weight: 500;
+}
+
+.auth-card .v-btn {
+    min-height: 44px;
+}
+
+.auth-card .auth-submit.v-btn {
+    min-height: 50px;
+    border-radius: 10px;
+    font-weight: 750;
+    letter-spacing: .055em;
+}
+
+.auth-card .auth-icon {
+    width: 58px;
+    height: 58px;
+    margin-bottom: 25px;
+    border-radius: 17px;
+    background: #e8f0ff;
+    color: var(--primary);
+    display: grid;
+    place-items: center;
+}
+
+.auth-switch {
+    color: var(--ink);
+    line-height: 1.7;
+}
+
+.auth-switch a {
+    font-weight: 650;
+    text-underline-offset: 3px;
+}
+
+.field-help {
+    margin: -13px 0 13px 4px;
+    color: var(--muted);
+    font-size: .8rem;
+    line-height: 1.45;
+}
+
+.password-requirements {
+    margin: -4px 0 18px;
+    padding: 14px 16px;
+    border: 1px solid #dce5f0;
+    border-radius: 12px;
+    background: #f7f9fc;
+}
+
+.password-requirements-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 9px;
+    color: var(--ink);
+    font-size: .88rem;
+}
+
+.password-progress-label {
+    color: var(--muted);
+    font-size: .78rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.password-requirements-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.password-requirements-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    min-width: 0;
+    color: #58677b;
+    font-size: .8rem;
+    line-height: 1.45;
+}
+
+.password-requirements-list li.is-met {
+    color: #14734f;
+    font-weight: 650;
+}
+
+.password-requirements-list .v-icon {
+    flex: 0 0 auto;
+    margin-top: 1px;
+}
+
+/* Consistent keyboard focus for links, form fields and Vuetify controls. */
+.auth-card a:focus-visible,
+.auth-card button:focus-visible,
+.auth-card input:focus-visible,
+.auth-card .v-field:focus-within,
+.auth-card .v-btn:focus-visible {
+    outline: 3px solid #234f9c !important;
+    outline-offset: 3px;
+}
+
+/* Ensure touch controls remain comfortably usable. */
+.auth-card .v-btn,
+.auth-card .v-field {
+    touch-action: manipulation;
+}
+
+/* Avoid horizontal overflow on narrow phones. */
+@media (max-width: 575.98px) {
+    .auth-wrap {
+        min-height: auto;
+        padding: 28px 12px 38px;
+    }
+
+    .auth-card.v-card {
+        width: 100%;
+        border-radius: 18px;
+    }
+
+    .auth-card-content.v-card-text {
+        padding: 25px 19px;
+    }
+
+    .auth-card h1 {
+        font-size: clamp(1.65rem, 7vw, 2rem);
+    }
+
+    .password-requirements-list {
+        grid-template-columns: 1fr;
+        gap: 7px;
+    }
+
+    .auth-card .v-field__input {
+        min-height: 52px;
+    }
+}
+
+@media (max-width: 360px) {
+    .auth-card-content.v-card-text {
+        padding: 22px 15px;
+    }
+
+    .password-requirements {
+        padding: 12px;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .password-requirements {
+        border-color: currentColor;
+    }
+
+    .password-requirements-list li {
+        color: #26364b;
+    }
+
+    .password-requirements-list li.is-met {
+        color: #075c3d;
+    }
+}
+
+
+/* ========================================================================
+   SHOPNEST VUETIFY DESIGN SYSTEM - CONSISTENT FORMS, MENUS AND TABLES
+   Appended to the existing ShopNest stylesheet; existing styles retained.
+   ======================================================================== */
+
+:root {
+    --sn-primary: #234F9C;
+    --sn-primary-dark: #163876;
+    --sn-secondary: #086F69;
+    --sn-background: #F7F9FC;
+    --sn-surface: #FFFFFF;
+    --sn-border: #DCE3EB;
+    --sn-input-border: #A0ADBD;
+    --sn-text: #14243B;
+    --sn-muted: #586B83;
+    --sn-error: #B42318;
+    --sn-success: #16835D;
+}
+
+/* Vuetify typography and surface colours */
+.v-application {
+    font-family: Inter, Arial, sans-serif !important;
+    color: var(--sn-text);
+    background: var(--sn-background);
+}
+
+/* Consistent outlined input fields */
+.v-application .v-field {
+    border-radius: 10px !important;
+    background: #FFFFFF;
+    color: var(--sn-text);
+}
+
+.v-application .v-field--variant-outlined {
+    --v-field-border-width: 1px;
+    --v-field-border-opacity: 1;
+}
+
+.v-application .v-field__outline {
+    color: var(--sn-input-border);
+}
+
+.v-application .v-field--focused .v-field__outline {
+    color: var(--sn-primary);
+}
+
+.v-application .v-field--error .v-field__outline {
+    color: var(--sn-error);
+}
+
+.v-application .v-field__input {
+    min-height: 52px;
+    padding: 12px 14px;
+    font-size: .98rem;
+}
+
+.v-application .v-field__input input,
+.v-application .v-field__input textarea {
+    color: var(--sn-text);
+    font-size: .98rem;
+}
+
+.v-application .v-field__input input::placeholder,
+.v-application .v-field__input textarea::placeholder {
+    color: #7B8797;
+    opacity: 1;
+}
+
+.v-application .v-textarea .v-field__input {
+    min-height: 125px;
+    align-items: flex-start;
+}
+
+/* External labels used consistently above fields */
+.sn-field-group {
+    min-width: 0;
+    margin-bottom: 18px;
+}
+
+.sn-field-label {
+    display: block;
+    margin: 0 0 8px;
+    color: var(--sn-text);
+    font-size: .92rem;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.sn-field-label .required {
+    color: var(--sn-error);
+}
+
+.sn-field-group .v-input {
+    margin-bottom: 0;
+}
+
+.sn-field-group .v-input__details {
+    padding-inline: 3px;
+}
+
+.sn-field-help {
+    display: block;
+    margin-top: 6px;
+    color: var(--sn-muted);
+    font-size: .79rem;
+}
+
+/* Vuetify dropdown menus */
+.v-overlay-container .v-select__content,
+.v-overlay-container .v-autocomplete__content,
+.v-overlay-container .v-combobox__content {
+    overflow: hidden;
+    border: 1px solid var(--sn-border);
+    border-radius: 12px !important;
+    background: #FFFFFF;
+    box-shadow: 0 12px 30px rgba(20, 36, 59, .13);
+}
+
+.v-overlay-container .v-list {
+    padding: 7px;
+    background: #FFFFFF;
+    color: var(--sn-text);
+}
+
+.v-overlay-container .v-list-item {
+    min-height: 43px;
+    margin: 2px 0;
+    padding-inline: 13px;
+    border-radius: 8px;
+    font-size: .91rem;
+    transition: background .15s ease;
+}
+
+.v-overlay-container .v-list-item:hover {
+    background: #EEF3FA;
+}
+
+.v-overlay-container .v-list-item--active {
+    background: #E8F0FF;
+    color: var(--sn-primary);
+    font-weight: 700;
+}
+
+.v-overlay-container .v-list-item-title {
+    font-size: .91rem;
+    font-weight: 550;
+}
+
+/* Buttons */
+.v-application .v-btn {
+    min-height: 42px;
+    border-radius: 9px;
+    font-size: .9rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+    transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.v-application .v-btn--variant-flat.v-btn--color-primary,
+.v-application .v-btn--variant-elevated.v-btn--color-primary {
+    background: var(--sn-primary) !important;
+    color: #FFFFFF !important;
+}
+
+.v-application .v-btn--variant-flat.v-btn--color-primary:hover,
+.v-application .v-btn--variant-elevated.v-btn--color-primary:hover {
+    background: var(--sn-primary-dark) !important;
+}
+
+.v-application .v-btn--variant-outlined {
+    border: 1px solid var(--sn-primary);
+    background: #FFFFFF;
+    color: var(--sn-primary);
+}
+
+.v-application .v-btn--variant-outlined:hover {
+    background: #EEF3FA;
+}
+
+.auth-card .auth-submit.v-btn {
+    min-height: 52px;
+    width: 100%;
+    border-radius: 10px;
+    font-size: .98rem;
+    font-weight: 750;
+    color: #FFFFFF !important;
+}
+
+/* Panels and editor settings */
+.v-application .v-card {
+    border-color: var(--sn-border);
+    border-radius: 15px;
+}
+
+.panel,
+.form-panel,
+.summary-card {
+    border: 1px solid var(--sn-border);
+    border-radius: 15px;
+    background: #FFFFFF;
+    box-shadow: 0 3px 12px rgba(20, 36, 59, .025);
+}
+
+.editor-side {
+    padding: 23px;
+    border: 1px solid var(--sn-border);
+    border-radius: 13px;
+    background: #F3F7FB;
+}
+
+.editor-side h2 {
+    margin-bottom: 22px;
+}
+
+/* Catalog search and sort controls */
+.catalog-toolbar {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 27px;
+}
+
+.catalog-search-group {
+    flex: 1 1 450px;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.catalog-sort-group {
+    flex: 0 1 250px;
+    min-width: 210px;
+    margin-bottom: 0;
+}
+
+.catalog-toolbar .v-field {
+    background: #FFFFFF;
+}
+
+/* Catalog filters */
+.catalog-filters {
+    border: 1px solid var(--sn-border);
+    border-radius: 14px;
+    background: #FFFFFF;
+    box-shadow: 0 3px 12px rgba(20, 36, 59, .025);
+}
+
+.v-application .v-checkbox .v-selection-control__input,
+.v-application .v-radio .v-selection-control__input {
+    color: var(--sn-primary);
+}
+
+/* Vuetify data tables */
+.admin-vuetify-table {
+    background: #FFFFFF;
+    border-radius: 11px;
+}
+
+.admin-vuetify-table .v-table__wrapper {
+    overflow-x: auto;
+}
+
+.admin-vuetify-table .v-table__wrapper > table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.admin-vuetify-table thead th {
+    height: 52px !important;
+    padding: 12px 14px !important;
+    background: #F7F9FC;
+    color: #53647B !important;
+    border-bottom: 1px solid var(--sn-border);
+    font-size: .76rem !important;
+    font-weight: 800 !important;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.admin-vuetify-table tbody td {
+    height: 66px;
+    padding: 13px 14px !important;
+    border-bottom: 1px solid #E9EDF2;
+    color: var(--sn-text);
+    font-size: .88rem;
+}
+
+.admin-vuetify-table tbody tr {
+    transition: background .15s ease;
+}
+
+.admin-vuetify-table tbody tr:hover {
+    background: #F7F9FC;
+}
+
+.admin-vuetify-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status chips */
+.v-application .v-chip {
+    border-radius: 30px;
+    font-size: .76rem;
+    font-weight: 750;
+    letter-spacing: 0;
+    text-transform: capitalize;
+}
+
+.v-application .v-chip--variant-tonal.v-chip--color-success {
+    background: #E1F3ED !important;
+    color: #08745D !important;
+}
+
+.v-application .v-chip--variant-tonal.v-chip--color-warning {
+    background: #FFF3D9 !important;
+    color: #946200 !important;
+}
+
+.v-application .v-chip--variant-tonal.v-chip--color-error {
+    background: #FDEBEA !important;
+    color: #B42318 !important;
+}
+
+/* Pagination */
+.v-application .v-pagination__list {
+    gap: 5px;
+}
+
+.v-application .v-pagination .v-btn {
+    min-width: 38px;
+    min-height: 38px;
+    border-radius: 50%;
+}
+
+.v-application .v-pagination .v-btn--active {
+    background: var(--sn-primary);
+    color: #FFFFFF;
+}
+
+/* Alerts and validation feedback */
+.v-application .v-alert {
+    border-radius: 11px;
+    font-size: .9rem;
+}
+
+.v-application .v-messages__message {
+    font-size: .78rem;
+    line-height: 1.45;
+}
+
+/* Password requirements: only unmet requirements are shown */
+.sn-password-errors {
+    margin: 7px 0 17px;
+    padding: 0 3px;
+}
+
+.sn-password-errors p {
+    display: flex;
+    gap: 8px;
+    margin: 4px 0;
+    color: #B42318;
+    font-size: .82rem;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.sn-password-errors p::before {
+    content: "•";
+    flex-shrink: 0;
+}
+
+.sn-password-success {
+    margin: 7px 0 17px;
+    color: #16835D;
+    font-size: .82rem;
+    font-weight: 650;
+}
+
+.v-application .v-field:focus-within {
+    outline: none !important;
+}
+
+/* Make the focused input border more visible. */
+.v-application .v-field--focused .v-field__outline {
+    color: #234F9C !important;
+}
+
+/* Keep keyboard focus indicators for other controls. */
+.v-application .v-btn:focus-visible,
+.v-application .v-list-item:focus-visible,
+.v-application a:focus-visible {
+    outline: 3px solid #234F9C !important;
+    outline-offset: 3px;
+}
+
+.v-application .v-btn:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+/* Responsive layout */
+@media (max-width: 991.98px) {
+    .catalog-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .catalog-search-group {
+        flex: 1 1 100%;
+    }
+
+    .catalog-sort-group {
+        flex: 1 1 220px;
+    }
+
+    .editor-side {
+        margin-top: 5px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .panel,
+    .form-panel {
+        padding: 18px;
+    }
+
+    .catalog-toolbar {
+        gap: 11px;
+    }
+
+    .catalog-sort-group {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .admin-vuetify-table .v-table__wrapper > table {
+        min-width: 700px;
+    }
+
+    .editor-side {
+        padding: 17px;
+    }
+
+    .editor-actions {
+        flex-wrap: wrap;
+    }
+
+    .editor-actions .v-btn {
+        flex: 1 1 auto;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .v-application .v-field__input {
+        min-height: 49px;
+        font-size: .93rem;
+    }
+
+    .sn-field-label {
+        font-size: .88rem;
+    }
+
+    .v-application .v-btn {
+        min-height: 44px;
+    }
+
+    .auth-card.v-card {
+        width: 100%;
+        border-radius: 17px;
+    }
+
+    .auth-card-content.v-card-text {
+        padding: 23px 18px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .v-application .v-btn,
+    .v-application .v-field,
+    .v-overlay-container .v-list-item {
+        transition: none !important;
+    }
+}
+
+/* Remove browser/custom square outlines */
+.v-application .v-field,
+.v-application .v-field:focus,
+.v-application .v-field:focus-within,
+.v-application .v-field__input,
+.v-application .v-field__input:focus-within,
+.v-application .v-field__input input,
+.v-application .v-field__input textarea,
+.v-application input:focus,
+.v-application input:focus-visible,
+.v-application textarea:focus,
+.v-application textarea:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Keep Vuetify's rounded blue border */
+.v-application .v-field--focused .v-field__outline {
+    color: #234F9C !important;
+}
+
+/* Keep the border visible during keyboard navigation */
+.v-application .v-field--focused {
+    --v-field-border-opacity: 1;
+}
+
+
+.cart-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.cart-remove-btn.v-btn {
+    min-width: 100px;
+    min-height: 42px;
+    padding: 0 13px;
+    border: 1px solid #B42318;
+    border-radius: 9px;
+    background: #FFFFFF;
+    color: #B42318 !important;
+    font-weight: 700;
+}
+
+.cart-remove-btn.v-btn:hover {
+    background: #FDEBEA;
+}
+
+.cart-remove-btn .v-btn__prepend {
+    margin-inline-end: 6px;
+}
+
+.cart-remove-btn .v-icon {
+    opacity: 1;
+}
+>>>>>>> origin/main

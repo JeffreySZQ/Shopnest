@@ -508,6 +508,10 @@ function apiOrderOutput($order) {
         'userId' => (int)$order['user_id'],
         'customer' => $order['customer_name'],
         'email' => $order['customer_email'],
+<<<<<<< HEAD
+=======
+        'phone' => isset($order['customer_phone']) ? $order['customer_phone'] : '',
+>>>>>>> origin/main
         'items' => $items,
         'subtotal' => (float)$order['subtotal'],
         'shipping' => (float)$order['shipping_fee'],
@@ -587,6 +591,18 @@ try {
             if (strlen($password) < 8) {
                 apiFail('Password must contain at least 8 characters.', 400);
             }
+<<<<<<< HEAD
+=======
+            if (!preg_match('/[A-Z]/', $password)) {
+                apiFail('Password must contain at least one uppercase letter.', 400);
+            }
+            if (!preg_match('/[a-z]/', $password)) {
+                apiFail('Password must contain at least one lowercase letter.', 400);
+            }
+            if (!preg_match('/[0-9]/', $password)) {
+                apiFail('Password must contain at least one number.', 400);
+            }
+>>>>>>> origin/main
 
             $existing = apiRows('SELECT id FROM users WHERE email = ?', 's', array($email));
             if (count($existing)) {
@@ -781,6 +797,127 @@ try {
     // Customer cart
     if ($resource === 'cart') {
         $user = apiRequireLogin();
+<<<<<<< HEAD
+=======
+
+        // POST /cart/merge
+        // Merge a guest cart exactly once for each user/token pair.
+        if ($method === 'POST' && $id === 'merge') {
+            $mergeToken = isset($input['mergeToken']) ? trim($input['mergeToken']) : '';
+            $items = isset($input['items']) ? $input['items'] : array();
+
+            if (!preg_match('/^[a-f0-9]{64}$/i', $mergeToken)) {
+                apiFail('Invalid guest cart merge token.', 400);
+            }
+
+            if (!is_array($items)) {
+                apiFail('Guest cart items must be an array.', 400);
+            }
+
+            if (count($items) > 100) {
+                apiFail('Guest cart contains too many different products.', 400);
+            }
+
+            if (!count($items)) {
+                apiRespond(array('success' => true, 'merged' => false, 'message' => 'Guest cart is empty.'), 200);
+            }
+
+            $conn->autocommit(false);
+
+            try {
+                // The unique key (user_id, merge_token) makes retries idempotent.
+                apiExec(
+                    'INSERT INTO cart_merge_tokens (user_id, merge_token) VALUES (?, ?)',
+                    'is',
+                    array((int)$user['id'], $mergeToken)
+                );
+
+                $cartId = apiCartId((int)$user['id']);
+
+                foreach ($items as $guestItem) {
+                    if (!is_array($guestItem)) {
+                        apiFail('Invalid guest cart item.', 400);
+                    }
+
+                    $productId = isset($guestItem['productId']) ? (int)$guestItem['productId'] : 0;
+                    $quantity = isset($guestItem['quantity']) ? (int)$guestItem['quantity'] : 0;
+
+                    if ($productId < 1 || $quantity < 1 || $quantity > 99) {
+                        apiFail('Guest cart contains an invalid product quantity.', 400);
+                    }
+
+                    $product = apiGetProduct($productId);
+                    if (!$product || $product['status'] !== 'published') {
+                        apiFail('A product in your guest cart is no longer available.', 409);
+                    }
+
+                    $existing = apiRows(
+                        'SELECT quantity FROM cart_items WHERE cart_id = ? AND product_id = ?',
+                        'ii',
+                        array($cartId, $productId)
+                    );
+
+                    $newQuantity = $quantity + (count($existing) ? (int)$existing[0]['quantity'] : 0);
+
+                    if ($newQuantity > 99) {
+                        apiFail('The merged quantity exceeds the maximum of 99 for ' . $product['name'] . '.', 400);
+                    }
+
+                    if ($product['product_type'] === 'physical' && $newQuantity > (int)$product['stock']) {
+                        apiFail('Not enough stock available for ' . $product['name'] . '.', 409);
+                    }
+
+                    if (count($existing)) {
+                        apiExec(
+                            'UPDATE cart_items SET quantity = ? WHERE cart_id = ? AND product_id = ?',
+                            'iii',
+                            array($newQuantity, $cartId, $productId)
+                        );
+                    } else {
+                        apiExec(
+                            'INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (?, ?, ?)',
+                            'iii',
+                            array($cartId, $productId, $quantity)
+                        );
+                    }
+                }
+
+                $conn->commit();
+                $conn->autocommit(true);
+
+                apiRespond(array(
+                    'success' => true,
+                    'merged' => true,
+                    'message' => 'Guest cart merged successfully.'
+                ), 200);
+
+            } catch (Exception $mergeError) {
+                $conn->rollback();
+                $conn->autocommit(true);
+
+                // If this exact token was already committed, the retry is safe.
+                if ($mergeError instanceof ShopNestApiException && $mergeError->httpStatus === 409) {
+                    $alreadyMerged = apiRows(
+                        'SELECT id FROM cart_merge_tokens WHERE user_id = ? AND merge_token = ?',
+                        'is',
+                        array((int)$user['id'], $mergeToken)
+                    );
+
+                    if (count($alreadyMerged)) {
+                        apiRespond(array(
+                            'success' => true,
+                            'merged' => false,
+                            'alreadyMerged' => true,
+                            'message' => 'This guest cart was already merged.'
+                        ), 200);
+                    }
+                }
+
+                throw $mergeError;
+            }
+        }
+
+>>>>>>> origin/main
         $cartId = apiCartId((int)$user['id']);
 
         if ($method === 'GET') {
@@ -902,6 +1039,14 @@ try {
                 apiFail('Enter a valid email address.', 400);
             }
 
+<<<<<<< HEAD
+=======
+            $phone = isset($input['phone']) ? trim($input['phone']) : '';
+            if ($phone === '' || strlen($phone) > 40 || !preg_match('/^[0-9+()\-\s]{7,40}$/', $phone)) {
+                apiFail('Enter a valid contact phone number.', 400);
+            }
+
+>>>>>>> origin/main
             $subtotal = 0;
             $hasPhysical = false;
             foreach ($rows as $item) {
@@ -931,9 +1076,15 @@ try {
             $fulfillment = $hasPhysical ? 'processing' : 'digital delivered';
 
             $orderResult = apiExec(
+<<<<<<< HEAD
                 "INSERT INTO orders (order_number, user_id, customer_name, customer_email, shipping_address, city, postcode, subtotal, shipping_fee, total, payment_status, fulfillment_status, is_demo_payment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'paid', ?, 1)",
                 'sisssssddds',
                 array($orderNumber, (int)$user['id'], $user['name'], $email, $address, $city, $postcode, $subtotal, $shipping, $total, $fulfillment)
+=======
+                "INSERT INTO orders (order_number, user_id, customer_name, customer_email, customer_phone, shipping_address, city, postcode, subtotal, shipping_fee, total, payment_status, fulfillment_status, is_demo_payment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'paid', ?, 1)",
+                'sissssssddds',
+                array($orderNumber, (int)$user['id'], $user['name'], $email, $phone, $address, $city, $postcode, $subtotal, $shipping, $total, $fulfillment)
+>>>>>>> origin/main
             );
             $orderId = (int)$orderResult['insertId'];
 
@@ -1169,6 +1320,49 @@ try {
                 'i',
                 array($productId)
             );
+<<<<<<< HEAD
+=======
+
+            // Create a baseline snapshot the first time version history is opened.
+            // This avoids requiring JSON_OBJECT() in older MariaDB installations.
+            if (!count($versions)) {
+                $product = apiGetProduct($productId);
+                $initialStatus = $product['status'] === 'published'
+                    ? 'live'
+                    : ($product['status'] === 'draft' ? 'draft' : 'historical');
+                $initialSnapshot = json_encode(
+                    apiProductSnapshot($product),
+                    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+                );
+
+                try {
+                    apiExec(
+                        'INSERT INTO product_versions (product_id, version_number, created_by, actor_name, status, note, snapshot) VALUES (?, 1, ?, ?, ?, ?, ?)',
+                        'iissss',
+                        array(
+                            $productId,
+                            (int)$admin['id'],
+                            $admin['name'],
+                            $initialStatus,
+                            'Initial product version',
+                            $initialSnapshot
+                        )
+                    );
+                } catch (ShopNestApiException $versionError) {
+                    // Another request may have created version 1 at the same time.
+                    if ($versionError->httpStatus !== 409) {
+                        throw $versionError;
+                    }
+                }
+
+                $versions = apiRows(
+                    'SELECT version_number AS version, actor_name AS actor, status, note, snapshot, created_at AS createdAt FROM product_versions WHERE product_id = ? ORDER BY version_number DESC',
+                    'i',
+                    array($productId)
+                );
+            }
+
+>>>>>>> origin/main
             foreach ($versions as $index => $version) {
                 $decoded = json_decode($version['snapshot'], true);
                 $versions[$index]['version'] = (int)$version['version'];

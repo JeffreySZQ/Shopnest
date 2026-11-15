@@ -35,6 +35,7 @@ export default defineConfig({
         proxy: {
             '/api': {
                 target: 'https://mercury.swin.edu.au',
+<<<<<<< HEAD
 
                 changeOrigin: true,
                 secure: true,
@@ -42,10 +43,28 @@ export default defineConfig({
                 cookieDomainRewrite: '',
                 cookiePathRewrite: '/',
 
+=======
+                changeOrigin: true,
+                secure: true,
+                cookieDomainRewrite: '',
+                cookiePathRewrite: '/',
+>>>>>>> origin/main
                 rewrite: path => path.replace(
                     /^\/api/,
                     `${mercuryProjectPath}/resources/shopnest-api.php`
                 )
+<<<<<<< HEAD
+=======
+            },
+            '/images': {
+                target: 'https://mercury.swin.edu.au',
+                changeOrigin: true,
+                secure: true,
+                rewrite: path => path.replace(
+                    /^\/images/,
+                    `${mercuryProjectPath}/images`
+                )
+>>>>>>> origin/main
             }
         }
     }

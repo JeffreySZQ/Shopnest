@@ -1,7 +1,12 @@
 
+<<<<<<< HEAD
 <script setup>
 import { computed, ref, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+=======
+<script>
+import { mapStores } from 'pinia';
+>>>>>>> origin/main
 import { useStore } from '@/stores/shop.js';
 import { Search, Download } from 'lucide-vue-next';
 import { downloadReceipt } from '@/utils/receipt.js';
@@ -9,6 +14,7 @@ import PageHeading from '@/components/PageHeading.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import { refreshOrders } from '@/services/shopApi.js';
 
+<<<<<<< HEAD
 const route = useRoute();
 const s = useStore();
 const search = ref('');
@@ -50,6 +56,53 @@ function getReceipt(order) {
         error.value = e.message;
     }
 }
+=======
+export default {
+    name: 'HistoryView',
+    components: { Search, Download, PageHeading, StatusBadge },
+    data() {
+        return {
+            search: '',
+            status: this.$route.query.type === 'digital' ? 'digital delivered' : '',
+            page: 1,
+            size: 5,
+            error: ''
+        };
+    },
+    computed: {
+        ...mapStores(useStore),
+        s() { return this.shopStore; },
+        onlyDigital() { return this.$route.query.type === 'digital'; },
+        results() {
+            return this.s.myOrders.filter(order =>
+                (!this.onlyDigital || order.items.some(item => item.type === 'digital')) &&
+                (!this.search || String(order.id).toLowerCase().includes(this.search.toLowerCase())) &&
+                (!this.status || order.fulfillmentStatus === this.status)
+            );
+        },
+        pages() { return Math.max(1, Math.ceil(this.results.length / this.size)); },
+        shown() { return this.results.slice((this.page - 1) * this.size, this.page * this.size); }
+    },
+    watch: {
+        onlyDigital(isDigital) {
+            this.status = isDigital ? 'digital delivered' : '';
+            this.page = 1;
+        },
+        search() { this.page = 1; },
+        status() { this.page = 1; }
+    },
+    async mounted() {
+        try { await refreshOrders(this.s); }
+        catch (error) { this.error = error.message; }
+    },
+    methods: {
+        getReceipt(order) {
+            try { this.error = ''; downloadReceipt(order); }
+            catch (error) { this.error = error.message; }
+        }
+    }
+};
+>>>>>>> origin/main
 </script>
 
 <template>
@@ -83,6 +136,7 @@ function getReceipt(order) {
       </div>
 
       <!-- Search and status filter -->
+<<<<<<< HEAD
       <div class="toolbar">
 
         <label class="search-box">
@@ -117,6 +171,38 @@ function getReceipt(order) {
           </select>
         </label>
 
+=======
+      <div class="row g-3 align-items-center mb-4">
+        <div class="col-12 col-md-6">
+          <v-text-field
+            v-model="search"
+            label="Search order number"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            density="comfortable"
+            clearable
+            hide-details
+          />
+        </div>
+        <div class="col-12 col-md-6">
+          <v-select
+            v-model="status"
+            :items="[
+              { title: 'All statuses', value: '' },
+              { title: 'Processing', value: 'processing' },
+              { title: 'Digital delivered', value: 'digital delivered' },
+              { title: 'Shipped', value: 'shipped' },
+              { title: 'Delivered', value: 'delivered' }
+            ]"
+            item-title="title"
+            item-value="value"
+            label="Order status"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+          />
+        </div>
+>>>>>>> origin/main
       </div>
 
       <!-- Error message -->
@@ -181,6 +267,7 @@ function getReceipt(order) {
           <!-- Order actions -->
           <div class="d-flex flex-wrap gap-2">
 
+<<<<<<< HEAD
             <button
               v-if="o.paymentStatus === 'paid'"
               class="btn btn-outline-primary btn-sm"
@@ -189,6 +276,17 @@ function getReceipt(order) {
               <Download :size="15" aria-hidden="true" />
               Receipt
             </button>
+=======
+            <v-btn
+              v-if="o.paymentStatus === 'paid'"
+              variant="outlined"
+              color="primary"
+              size="small"
+              @click="getReceipt(o)"
+            >
+              <Download :size="15" aria-hidden="true" /> Receipt
+            </v-btn>
+>>>>>>> origin/main
 
             <RouterLink
               class="btn btn-outline-primary btn-sm"
@@ -211,6 +309,7 @@ function getReceipt(order) {
       </div>
 
       <!-- Pagination -->
+<<<<<<< HEAD
       <div v-if="pages > 1" class="page-controls">
 
         <button
@@ -233,6 +332,16 @@ function getReceipt(order) {
           Next
         </button>
 
+=======
+      <div v-if="pages > 1" class="d-flex justify-content-center mt-4">
+        <v-pagination
+          v-model="page"
+          :length="pages"
+          :total-visible="5"
+          density="comfortable"
+          rounded="circle"
+        />
+>>>>>>> origin/main
       </div>
 
     </div>

@@ -1,10 +1,16 @@
+<<<<<<< HEAD
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+=======
+<script>
+import { mapStores } from 'pinia';
+>>>>>>> origin/main
 import { useStore } from '@/stores/shop.js';
 import { Search, ArrowRight } from 'lucide-vue-next';
 import StatusBadge from '@/components/StatusBadge.vue';
 import { refreshAdminData } from '@/services/shopApi.js';
 
+<<<<<<< HEAD
 const s = useStore();
 const search = ref('');
 const status = ref('');
@@ -29,6 +35,31 @@ const filtered = computed(() =>
 
 const pages = computed(() => Math.max(1, Math.ceil(filtered.value.length / size)));
 const shown = computed(() => filtered.value.slice((page.value - 1) * size, page.value * size));
+=======
+export default {
+    name: 'AdminOrdersView',
+    components: { Search, ArrowRight, StatusBadge },
+    data() { return { search: '', status: '', page: 1, size: 8, error: '' }; },
+    computed: {
+        ...mapStores(useStore),
+        s() { return this.shopStore; },
+        filtered() {
+            const keyword = this.search.toLowerCase();
+            return this.s.orders.slice().reverse().filter(order =>
+                (!keyword || (order.id + ' ' + order.customer + ' ' + order.email).toLowerCase().includes(keyword)) &&
+                (!this.status || order.fulfillmentStatus === this.status)
+            );
+        },
+        pages() { return Math.max(1, Math.ceil(this.filtered.length / this.size)); },
+        shown() { return this.filtered.slice((this.page - 1) * this.size, this.page * this.size); }
+    },
+    watch: { search() { this.page = 1; }, status() { this.page = 1; } },
+    async mounted() {
+        try { await refreshAdminData(this.s); }
+        catch (error) { this.error = error.message; }
+    }
+};
+>>>>>>> origin/main
 </script>
 
 <template>
@@ -49,6 +80,7 @@ const shown = computed(() => filtered.value.slice((page.value - 1) * size, page.
 
         <div class="panel">
             <p v-if="error" class="text-danger" role="alert">{{ error }}</p>
+<<<<<<< HEAD
             <div class="toolbar">
                 <label class="search-box">
                     <Search :size="18" />
@@ -86,6 +118,43 @@ const shown = computed(() => filtered.value.slice((page.value - 1) * size, page.
 
             <div class="table-responsive">
                 <table class="table admin-table align-middle">
+=======
+            <div class="row g-3 align-items-center mb-4">
+                <div class="col-12 col-lg-6">
+                    <v-text-field
+                        v-model="search"
+                        label="Search order or customer"
+                        prepend-inner-icon="mdi-magnify"
+                        variant="outlined"
+                        density="comfortable"
+                        clearable
+                        hide-details
+                    />
+                </div>
+                <div class="col-12 col-lg-6">
+                    <v-select
+                        v-model="status"
+                        :items="[
+                            { title: 'All fulfillment statuses', value: '' },
+                            { title: 'Processing', value: 'processing' },
+                            { title: 'Digital delivered', value: 'digital delivered' },
+                            { title: 'Shipped', value: 'shipped' },
+                            { title: 'Delivered', value: 'delivered' },
+                            { title: 'Cancelled', value: 'cancelled' }
+                        ]"
+                        item-title="title"
+                        item-value="value"
+                        label="Fulfillment status"
+                        variant="outlined"
+                        density="comfortable"
+                        hide-details
+                    />
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <v-table class="table admin-table align-middle admin-vuetify-table" density="comfortable">
+>>>>>>> origin/main
                     <thead>
                         <tr>
                             <th>Order</th>
@@ -142,7 +211,11 @@ const shown = computed(() => filtered.value.slice((page.value - 1) * size, page.
                             </td>
                         </tr>
                     </tbody>
+<<<<<<< HEAD
                 </table>
+=======
+                </v-table>
+>>>>>>> origin/main
             </div>
 
             <div
@@ -152,6 +225,7 @@ const shown = computed(() => filtered.value.slice((page.value - 1) * size, page.
                 No orders yet. Use the customer demo account to place an order.
             </div>
 
+<<<<<<< HEAD
             <div class="page-controls">
                 <span>
                     {{ filtered.length }} orders
@@ -176,6 +250,18 @@ const shown = computed(() => filtered.value.slice((page.value - 1) * size, page.
                 >
                     Next
                 </button>
+=======
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mt-4">
+                <span class="small text-medium-emphasis">{{ filtered.length }} orders</span>
+                <v-pagination
+                    v-model="page"
+                    :length="pages"
+                    :total-visible="5"
+                    density="comfortable"
+                    rounded="circle"
+                />
+                <span class="small text-medium-emphasis">Page {{ page }} of {{ pages }}</span>
+>>>>>>> origin/main
             </div>
         </div>
     </div>

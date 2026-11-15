@@ -1,11 +1,16 @@
+<<<<<<< HEAD
 <script setup>
 import { computed, ref, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from '@/stores/shop.js';
+=======
+<script>
+>>>>>>> origin/main
 import { ArrowLeft, RotateCcw, CheckCircle2, GitCompare, Image as ImageIcon } from 'lucide-vue-next';
 import ProductArt from '@/components/ProductArt.vue';
 import { api } from '@/services/shopApi.js';
 
+<<<<<<< HEAD
 const s = useStore();
 const route = useRoute();
 const router = useRouter();
@@ -102,6 +107,115 @@ function formatted(date) {
         timeStyle: 'short'
     });
 }
+=======
+export default {
+    name: 'AdminProductVersionsView',
+    components: { ArrowLeft, RotateCcw, CheckCircle2, GitCompare, ImageIcon, ProductArt },
+    data() {
+        return {
+            product: null,
+            versions: [],
+            olderId: null,
+            newerId: null,
+            isConfirming: false,
+            error: '',
+            loading: true,
+            comparable: [
+                { key: 'name', label: 'Product name' },
+                { key: 'sku', label: 'SKU' },
+                { key: 'category', label: 'Category' },
+                { key: 'type', label: 'Product type' },
+                { key: 'status', label: 'Publication' },
+                { key: 'short', label: 'Short description' },
+                { key: 'description', label: 'Long description' },
+                { key: 'price', label: 'Unit price' },
+                { key: 'stock', label: 'Stock' },
+                { key: 'imagePath', label: 'Image path' },
+                { key: 'imageAlt', label: 'Image description' }
+            ]
+        };
+    },
+    computed: {
+        oldVersion() { return this.versions.find(version => Number(version.version) === Number(this.olderId)); },
+        newVersion() { return this.versions.find(version => Number(version.version) === Number(this.newerId)); },
+        oldSnap() { return this.oldVersion ? this.oldVersion.snapshot : {}; },
+        newSnap() { return this.newVersion ? this.newVersion.snapshot : {}; },
+        changedCount() { return this.comparable.filter(field => this.changed(field.key)).length; },
+        versionOptions() { return this.versions.map(version => ({ title: 'v' + version.version + ' · ' + this.formatted(version.createdAt) + ' (' + version.status + ')', value: Number(version.version) })); }
+    },
+    watch: {
+        '$route.params.id'() { this.loadVersions(); },
+        versions: {
+            deep: true,
+            handler(list) {
+                if (!list.length) return;
+                if (!list.some(version => Number(version.version) === Number(this.newerId))) {
+                    this.newerId = Number(list[0].version);
+                }
+                if (!list.some(version => Number(version.version) === Number(this.olderId)) || Number(this.olderId) === Number(this.newerId)) {
+                    const previous = list.find(version => Number(version.version) !== Number(this.newerId));
+                    this.olderId = previous ? Number(previous.version) : Number(list[0].version);
+                }
+            }
+        }
+    },
+    mounted() { this.loadVersions(); },
+    methods: {
+        async loadVersions() {
+            this.loading = true;
+            this.error = '';
+            try {
+                const id = Number(this.$route.params.id);
+                const productResult = await api.get('/products/' + id);
+                this.product = productResult.product;
+                const versionResult = await api.get(`/admin/products/${id}/versions`);
+                this.versions = (versionResult.versions || []).map(version => ({
+                    ...version,
+                    version: Number(version.version),
+                    snapshot: version.snapshot || {}
+                }));
+            } catch (error) {
+                this.error = error.message;
+            } finally {
+                this.loading = false;
+            }
+        },
+        displayValue(snapshot, key) {
+            if (key === 'price') return `RM ${Number(snapshot.price || 0).toFixed(2)}`;
+            if (key === 'stock') return String(Number(snapshot.stock || 0));
+            const value = snapshot[key];
+            return String(value === undefined || value === null || value === '' ? 'Not specified' : value);
+        },
+        changed(key) {
+            return this.displayValue(this.oldSnap, key) !== this.displayValue(this.newSnap, key);
+        },
+        async restore() {
+            if (!this.product || !this.olderId) return;
+            this.error = '';
+            try {
+                const result = await api.post(
+                    `/admin/products/${this.product.id}/restore/${this.olderId}`,
+                    {}
+                );
+                this.isConfirming = false;
+                await this.$router.push({
+                    name: 'admin-product-edit',
+                    params: { id: this.product.id },
+                    query: { draftVersion: String(result.draftVersion) }
+                });
+            } catch (error) {
+                this.error = error.message;
+            }
+        },
+        formatted(date) {
+            return new Date(date).toLocaleString('en-MY', {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            });
+        }
+    }
+};
+>>>>>>> origin/main
 </script>
 
 <template>
@@ -164,7 +278,11 @@ function formatted(date) {
                     Choose exactly two versions to compare.
                 </p>
 
+<<<<<<< HEAD
                 <button
+=======
+                <v-btn
+>>>>>>> origin/main
                     v-for="v in versions"
                     :key="v.version"
                     class="version-tile"
@@ -173,6 +291,7 @@ function formatted(date) {
                     :class="{ selected: v.version === olderId || v.version === newerId }"
                     @click="v.version === newerId ? olderId = v.version : newerId = v.version"
                 >
+<<<<<<< HEAD
                     <div class="version-tile-content">
                         <div class="version-tile-heading">
                             <strong>v{{ v.version }}</strong>
@@ -184,6 +303,17 @@ function formatted(date) {
                         <small class="version-tile-note">{{ v.note }}</small>
                     </div>
                 </button>
+=======
+                    <span class="d-flex justify-content-between">
+                        <strong>v{{ v.version }}</strong>
+                        <span class="small">{{ v.status }}</span>
+                    </span>
+
+                    <small>{{ formatted(v.createdAt) }}</small>
+                    <small>{{ v.actor }}</small>
+                    <small>{{ v.note }}</small>
+                </v-btn>
+>>>>>>> origin/main
             </aside>
 
             <div class="version-main">
@@ -200,6 +330,7 @@ function formatted(date) {
 
                     <div class="row g-3">
                         <div class="col-md-6">
+<<<<<<< HEAD
                             <label
                                 class="form-label"
                                 for="oldversion"
@@ -247,6 +378,29 @@ function formatted(date) {
                                     ({{ v.status }})
                                 </option>
                             </select>
+=======
+                            <v-select
+                                v-model="olderId"
+                                :items="versionOptions"
+                                item-title="title"
+                                item-value="value"
+                                label="Earlier / restore source"
+                                variant="outlined"
+                                density="comfortable"
+                            />
+                        </div>
+
+                        <div class="col-md-6">
+                            <v-select
+                                v-model="newerId"
+                                :items="versionOptions"
+                                item-title="title"
+                                item-value="value"
+                                label="Compare with"
+                                variant="outlined"
+                                density="comfortable"
+                            />
+>>>>>>> origin/main
                         </div>
                     </div>
 
@@ -357,6 +511,7 @@ function formatted(date) {
                         </p>
                     </div>
 
+<<<<<<< HEAD
                     <button
                         class="btn btn-primary"
                         type="button"
@@ -366,6 +521,11 @@ function formatted(date) {
                         <RotateCcw :size="16" />
                         Review restore
                     </button>
+=======
+                    <v-btn color="primary" :disabled="olderId === newerId || !olderId" @click="isConfirming = true">
+                        <RotateCcw :size="16" /> Review restore
+                    </v-btn>
+>>>>>>> origin/main
                 </div>
 
                 <div
@@ -397,6 +557,7 @@ function formatted(date) {
                     </p>
 
                     <div class="d-flex gap-2 flex-wrap">
+<<<<<<< HEAD
                         <button
                             class="btn btn-outline-primary"
                             type="button"
@@ -413,6 +574,12 @@ function formatted(date) {
                             <RotateCcw :size="16" />
                             Confirm restore
                         </button>
+=======
+                        <v-btn variant="outlined" color="primary" @click="isConfirming = false">Cancel</v-btn>
+                        <v-btn color="primary" @click="restore">
+                            <RotateCcw :size="16" /> Confirm restore
+                        </v-btn>
+>>>>>>> origin/main
                     </div>
                 </div>
             </div>
