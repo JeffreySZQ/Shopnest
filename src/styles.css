@@ -1705,17 +1705,10 @@ img {
 }
 /* Product version history and side-by-side comparison */
 .version-layout {
-<<<<<<< HEAD
     display: grid;
     grid-template-columns: 260px minmax(0, 1fr);
     gap: 18px;
     align-items: start;
-=======
-    display:grid;
-    grid-template-columns:225px minmax(0,1fr);
-    gap:18px;
-    align-items:start
->>>>>>> origin/main
 }
 .version-page h2 {
     font-size:1.05rem;
@@ -1752,24 +1745,16 @@ img {
     margin:0 0 22px
 }
 .version-sidebar {
-<<<<<<< HEAD
     padding: 18px;
     display: flex;
     flex-direction: column;
     gap: 10px;
     min-width: 0;
-=======
-    padding:18px;
-    display:flex;
-    flex-direction:column;
-    gap:10px
->>>>>>> origin/main
 }
 .version-sidebar h2 {
     margin-bottom:0
 }
 .version-tile {
-<<<<<<< HEAD
     width: 100%;
     height: auto;
     min-height: 0;
@@ -1833,19 +1818,6 @@ img {
     white-space: normal;
     overflow-wrap: anywhere;
     word-break: break-word;
-=======
-    width:100%;
-    text-align:left;
-    border:1px solid #d5dfec;
-    background:white;
-    border-radius:10px;
-    padding:13px;
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-    color:#14243b;
-    cursor:pointer
->>>>>>> origin/main
 }
 .version-tile.selected {
     background:#edf2ff;
@@ -1854,7 +1826,6 @@ img {
 .version-tile:hover {
     border-color:#234f9c
 }
-<<<<<<< HEAD
 .version-tile-note {
     color: #14243b;
 }
@@ -1863,18 +1834,6 @@ img {
     display: flex;
     flex-direction: column;
     gap: 18px;
-=======
-.version-tile small {
-    font-size:.72rem;
-    color:#495a70;
-    overflow-wrap:anywhere
-}
-.version-main {
-    min-width:0;
-    display:flex;
-    flex-direction:column;
-    gap:18px
->>>>>>> origin/main
 }
 .version-selectors,.version-restore,.version-confirm {
     padding:22px
@@ -2029,8 +1988,6 @@ img {
 .admin-vuetify-form .v-btn {
     text-transform: none;
 }
-<<<<<<< HEAD
-=======
 
 /* --------------------------------------------------------------------------
    Accessible Vuetify authentication forms and responsive refinements
@@ -2798,4 +2755,3 @@ img {
 .cart-remove-btn .v-icon {
     opacity: 1;
 }
->>>>>>> origin/main
