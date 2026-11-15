@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-<script setup>
-defineProps({
-    value: {
-        type: String,
-        default: 'unknown'
-    }
-});
-=======
 <script>
 export default {
     name: 'StatusBadge',
@@ -22,7 +13,6 @@ export default {
         }
     }
 };
->>>>>>> origin/main
 </script>
 
 <template>

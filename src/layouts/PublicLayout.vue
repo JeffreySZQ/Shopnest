@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-<script setup>
-import Header from '@/components/Header.vue';
-import Footer from '@/components/Footer.vue';
-=======
 <script>
 import Header from '@/components/Header.vue';
 import Footer from '@/components/Footer.vue';
@@ -11,7 +6,6 @@ export default {
     name: 'PublicLayout',
     components: { Header, Footer }
 };
->>>>>>> origin/main
 </script>
 
 <template>

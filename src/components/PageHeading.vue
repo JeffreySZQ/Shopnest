@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-<script setup>
-defineProps({
-    eyebrow: String,
-    title: String,
-    description: String
-});
-=======
 <script>
 export default {
     name: 'PageHeading',
@@ -15,7 +7,6 @@ export default {
         description: { type: String, default: '' }
     }
 };
->>>>>>> origin/main
 </script>
 
 <template>
