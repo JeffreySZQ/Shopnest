@@ -1752,22 +1752,22 @@ img {
     min-width: 0;
 }
 .version-sidebar h2 {
-    margin-bottom:0
+    margin-bottom: 0;
 }
 .version-tile {
     width: 100%;
-    height: auto;
-    min-height: 0;
+    height: auto !important;
+    min-height: 0 !important;
     text-align: left;
     border: 1px solid #d5dfec;
     background: white;
     border-radius: 10px;
-    padding: 12pxt;
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-start;
-    white-space: normal;
-    text-transform: none;
+    padding: 12px !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    white-space: normal !important;
+    text-transform: none !important;
     color: #14243b;
     cursor: pointer;
 }
@@ -1827,7 +1827,7 @@ img {
     border-color:#234f9c
 }
 .version-tile-note {
-    color: #14243b;
+    color: #14243b !important;
 }
 .version-main {
     min-width: 0;
