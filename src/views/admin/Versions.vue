@@ -167,27 +167,22 @@ function formatted(date) {
                 <button
                     v-for="v in versions"
                     :key="v.version"
-                    type="button"
                     class="version-tile"
-                    :class="{
-                        'selected':
-                            v.version === olderId ||
-                            v.version === newerId
-                    }"
-                    @click="
-                        v.version === newerId
-                            ? olderId = v.version
-                            : newerId = v.version
-                    "
+                    variant="text"
+                    block
+                    :class="{ selected: v.version === olderId || v.version === newerId }"
+                    @click="v.version === newerId ? olderId = v.version : newerId = v.version"
                 >
-                    <span class="d-flex justify-content-between">
-                        <strong>v{{ v.version }}</strong>
-                        <span class="small">{{ v.status }}</span>
-                    </span>
+                    <div class="version-tile-content">
+                        <div class="version-tile-heading">
+                            <strong>v{{ v.version }}</strong>
+                            <span class="version-tile-status">{{ v.status }}</span>
+                        </div>
 
-                    <small>{{ formatted(v.createdAt) }}</small>
-                    <small>{{ v.actor }}</small>
-                    <small>{{ v.note }}</small>
+                        <small>{{ formatted(v.createdAt) }}</small>
+                        <small>{{ v.actor }}</small>
+                        <small class="version-tile-note">{{ v.note }}</small>
+                    </div>
                 </button>
             </aside>
 
