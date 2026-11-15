@@ -1,74 +1,10 @@
-<<<<<<< HEAD
-<script setup>
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-=======
 <script>
 import { mapStores } from 'pinia';
->>>>>>> origin/main
 import { useStore } from '@/stores/shop.js';
 import { ArrowLeft, Save } from 'lucide-vue-next';
 import StatusBadge from '@/components/StatusBadge.vue';
 import { api, refreshAdminData } from '@/services/shopApi.js';
 
-<<<<<<< HEAD
-const s = useStore();
-const route = useRoute();
-const o = ref(null);
-const newStatus = ref('');
-const notice = ref('');
-const busy = ref(false);
-
-async function loadOrder() {
-    const result = await api.get('/admin/orders/' + encodeURIComponent(route.params.id));
-    o.value = result.order;
-    newStatus.value = o.value.fulfillmentStatus;
-}
-
-onMounted(async () => {
-    try {
-        await loadOrder();
-    } catch (e) {
-        notice.value = e.message;
-    }
-});
-
-async function decide(approve) {
-    if (!o.value) return;
-    busy.value = true;
-    notice.value = '';
-    try {
-        await api.post('/admin/cancellations/' + encodeURIComponent(o.value.id), { approve });
-        await refreshAdminData(s);
-        await loadOrder();
-        notice.value = approve
-            ? 'Cancellation approved. Refund status is simulated; no money was returned.'
-            : 'Cancellation request declined.';
-    } catch (e) {
-        notice.value = e.message;
-    } finally {
-        busy.value = false;
-    }
-}
-
-async function update() {
-    if (!newStatus.value || !o.value) return;
-    busy.value = true;
-    notice.value = '';
-    try {
-        await api.patch('/admin/orders/' + encodeURIComponent(o.value.id), {
-            fulfillmentStatus: newStatus.value
-        });
-        await refreshAdminData(s);
-        await loadOrder();
-        notice.value = 'Order fulfillment status updated.';
-    } catch (e) {
-        notice.value = e.message;
-    } finally {
-        busy.value = false;
-    }
-}
-=======
 export default {
     name: 'AdminOrderDetailView',
     components: { ArrowLeft, Save, StatusBadge },
@@ -118,7 +54,6 @@ export default {
         }
     }
 };
->>>>>>> origin/main
 </script>
 
 <template>
@@ -206,11 +141,8 @@ export default {
                             <strong>{{ o.customer }}</strong>
                             <br />
                             {{ o.email }}
-<<<<<<< HEAD
-=======
                             <br />
                             <span v-if="o.phone">{{ o.phone }}</span>
->>>>>>> origin/main
                         </p>
 
                         <p v-if="o.address">
@@ -231,21 +163,6 @@ export default {
                             </p>
 
                             <div class="d-flex flex-wrap gap-2">
-<<<<<<< HEAD
-                                <button
-                                    class="btn btn-outline-danger btn-sm"
-                                    @click="decide(true)" :disabled="busy"
-                                >
-                                    Approve cancellation (demo)
-                                </button>
-
-                                <button
-                                    class="btn btn-outline-primary btn-sm"
-                                    @click="decide(false)" :disabled="busy"
-                                >
-                                    Decline
-                                </button>
-=======
                                 <v-btn color="error" variant="outlined" size="small" :disabled="busy" @click="decide(true)">
                                     Approve cancellation (demo)
                                 </v-btn>
@@ -253,7 +170,6 @@ export default {
                                 <v-btn color="primary" variant="outlined" size="small" :disabled="busy" @click="decide(false)">
                                     Decline
                                 </v-btn>
->>>>>>> origin/main
                             </div>
                         </div>
 
@@ -266,43 +182,6 @@ export default {
                             Do not use these controls for real-world fulfillment.
                         </p>
 
-<<<<<<< HEAD
-                        <label
-                            for="fulfillment-state"
-                            class="form-label"
-                        >
-                            Update status
-                        </label>
-
-                        <select
-                            id="fulfillment-state"
-                            v-model="newStatus"
-                            class="form-select"
-                        >
-                            <option value="">Choose status</option>
-                            <option value="processing">Processing</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-
-                        <button
-                            class="btn btn-primary w-100 mt-3"
-                            :disabled="!newStatus || busy"
-                            @click="update"
-                        >
-                            <Save :size="17" />
-                            Save status
-                        </button>
-
-                        <p
-                            v-if="notice"
-                            class="form-notice mt-2"
-                            role="status"
-                        >
-                            {{ notice }}
-                        </p>
-=======
                         <v-select
                             id="fulfillment-state"
                             v-model="newStatus"
@@ -326,7 +205,6 @@ export default {
                         <v-alert v-if="notice" type="info" variant="tonal" density="compact" class="mt-2" role="status">
                             {{ notice }}
                         </v-alert>
->>>>>>> origin/main
                     </div>
                 </div>
             </div>

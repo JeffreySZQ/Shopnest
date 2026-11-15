@@ -1,12 +1,6 @@
 
-<<<<<<< HEAD
-<script setup>
-import { computed, ref, watch, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-=======
 <script>
 import { mapStores } from 'pinia';
->>>>>>> origin/main
 import { useStore } from '@/stores/shop.js';
 import { Search, Download } from 'lucide-vue-next';
 import { downloadReceipt } from '@/utils/receipt.js';
@@ -14,49 +8,6 @@ import PageHeading from '@/components/PageHeading.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import { refreshOrders } from '@/services/shopApi.js';
 
-<<<<<<< HEAD
-const route = useRoute();
-const s = useStore();
-const search = ref('');
-const status = ref(route.query.type === 'digital' ? 'digital delivered' : '');
-const page = ref(1);
-const size = 5;
-const error = ref('');
-const onlyDigital = computed(() => route.query.type === 'digital');
-
-onMounted(async () => {
-    try {
-        await refreshOrders(s);
-    } catch (e) {
-        error.value = e.message;
-    }
-});
-
-watch(onlyDigital, isDigital => {
-    status.value = isDigital ? 'digital delivered' : '';
-    page.value = 1;
-});
-
-const results = computed(() =>
-    s.myOrders.filter(o =>
-        (!onlyDigital.value || o.items.some(i => i.type === 'digital')) &&
-        (!search.value || o.id.toLowerCase().includes(search.value.toLowerCase())) &&
-        (!status.value || o.fulfillmentStatus === status.value)
-    )
-);
-
-const pages = computed(() => Math.max(1, Math.ceil(results.value.length / size)));
-const shown = computed(() => results.value.slice((page.value - 1) * size, page.value * size));
-
-function getReceipt(order) {
-    try {
-        error.value = '';
-        downloadReceipt(order);
-    } catch (e) {
-        error.value = e.message;
-    }
-}
-=======
 export default {
     name: 'HistoryView',
     components: { Search, Download, PageHeading, StatusBadge },
@@ -102,7 +53,6 @@ export default {
         }
     }
 };
->>>>>>> origin/main
 </script>
 
 <template>
@@ -136,42 +86,6 @@ export default {
       </div>
 
       <!-- Search and status filter -->
-<<<<<<< HEAD
-      <div class="toolbar">
-
-        <label class="search-box">
-          <Search :size="18" aria-hidden="true" />
-
-          <span class="visually-hidden">
-            Search order number
-          </span>
-
-          <input
-            v-model="search"
-            @input="page = 1"
-            placeholder="Search order number"
-          />
-        </label>
-
-        <label>
-          <span class="visually-hidden">
-            Filter order status
-          </span>
-
-          <select
-            v-model="status"
-            class="form-select"
-            @change="page = 1"
-          >
-            <option value="">All statuses</option>
-            <option value="processing">Processing</option>
-            <option value="digital delivered">Digital delivered</option>
-            <option value="shipped">Shipped</option>
-            <option value="delivered">Delivered</option>
-          </select>
-        </label>
-
-=======
       <div class="row g-3 align-items-center mb-4">
         <div class="col-12 col-md-6">
           <v-text-field
@@ -202,7 +116,6 @@ export default {
             hide-details
           />
         </div>
->>>>>>> origin/main
       </div>
 
       <!-- Error message -->
@@ -267,16 +180,6 @@ export default {
           <!-- Order actions -->
           <div class="d-flex flex-wrap gap-2">
 
-<<<<<<< HEAD
-            <button
-              v-if="o.paymentStatus === 'paid'"
-              class="btn btn-outline-primary btn-sm"
-              @click="getReceipt(o)"
-            >
-              <Download :size="15" aria-hidden="true" />
-              Receipt
-            </button>
-=======
             <v-btn
               v-if="o.paymentStatus === 'paid'"
               variant="outlined"
@@ -286,7 +189,6 @@ export default {
             >
               <Download :size="15" aria-hidden="true" /> Receipt
             </v-btn>
->>>>>>> origin/main
 
             <RouterLink
               class="btn btn-outline-primary btn-sm"
@@ -309,30 +211,6 @@ export default {
       </div>
 
       <!-- Pagination -->
-<<<<<<< HEAD
-      <div v-if="pages > 1" class="page-controls">
-
-        <button
-          class="btn btn-outline-primary"
-          :disabled="page === 1"
-          @click="page--"
-        >
-          Previous
-        </button>
-
-        <span>
-          Page {{ page }} of {{ pages }}
-        </span>
-
-        <button
-          class="btn btn-outline-primary"
-          :disabled="page === pages"
-          @click="page++"
-        >
-          Next
-        </button>
-
-=======
       <div v-if="pages > 1" class="d-flex justify-content-center mt-4">
         <v-pagination
           v-model="page"
@@ -341,7 +219,6 @@ export default {
           density="comfortable"
           rounded="circle"
         />
->>>>>>> origin/main
       </div>
 
     </div>

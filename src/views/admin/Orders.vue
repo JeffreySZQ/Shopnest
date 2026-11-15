@@ -1,41 +1,10 @@
-<<<<<<< HEAD
-<script setup>
-import { ref, computed, onMounted } from 'vue';
-=======
 <script>
 import { mapStores } from 'pinia';
->>>>>>> origin/main
 import { useStore } from '@/stores/shop.js';
 import { Search, ArrowRight } from 'lucide-vue-next';
 import StatusBadge from '@/components/StatusBadge.vue';
 import { refreshAdminData } from '@/services/shopApi.js';
 
-<<<<<<< HEAD
-const s = useStore();
-const search = ref('');
-const status = ref('');
-const page = ref(1);
-const size = 8;
-const error = ref('');
-
-onMounted(async () => {
-    try {
-        await refreshAdminData(s);
-    } catch (e) {
-        error.value = e.message;
-    }
-});
-
-const filtered = computed(() =>
-    s.orders.slice().reverse().filter(o =>
-        (!search.value || (o.id + ' ' + o.customer + ' ' + o.email).toLowerCase().includes(search.value.toLowerCase())) &&
-        (!status.value || o.fulfillmentStatus === status.value)
-    )
-);
-
-const pages = computed(() => Math.max(1, Math.ceil(filtered.value.length / size)));
-const shown = computed(() => filtered.value.slice((page.value - 1) * size, page.value * size));
-=======
 export default {
     name: 'AdminOrdersView',
     components: { Search, ArrowRight, StatusBadge },
@@ -59,7 +28,6 @@ export default {
         catch (error) { this.error = error.message; }
     }
 };
->>>>>>> origin/main
 </script>
 
 <template>
@@ -80,45 +48,6 @@ export default {
 
         <div class="panel">
             <p v-if="error" class="text-danger" role="alert">{{ error }}</p>
-<<<<<<< HEAD
-            <div class="toolbar">
-                <label class="search-box">
-                    <Search :size="18" />
-
-                    <span class="visually-hidden">
-                        Search orders
-                    </span>
-
-                    <input
-                        v-model="search"
-                        @input="page = 1"
-                        placeholder="Search order or customer"
-                    />
-                </label>
-
-                <label>
-                    <span class="visually-hidden">
-                        Filter fulfillment status
-                    </span>
-
-                    <select
-                        v-model="status"
-                        class="form-select"
-                        @change="page = 1"
-                    >
-                        <option value="">All fulfillment statuses</option>
-                        <option value="processing">Processing</option>
-                        <option value="digital delivered">Digital delivered</option>
-                        <option value="shipped">Shipped</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-                </label>
-            </div>
-
-            <div class="table-responsive">
-                <table class="table admin-table align-middle">
-=======
             <div class="row g-3 align-items-center mb-4">
                 <div class="col-12 col-lg-6">
                     <v-text-field
@@ -154,7 +83,6 @@ export default {
 
             <div class="table-responsive">
                 <v-table class="table admin-table align-middle admin-vuetify-table" density="comfortable">
->>>>>>> origin/main
                     <thead>
                         <tr>
                             <th>Order</th>
@@ -211,11 +139,7 @@ export default {
                             </td>
                         </tr>
                     </tbody>
-<<<<<<< HEAD
-                </table>
-=======
                 </v-table>
->>>>>>> origin/main
             </div>
 
             <div
@@ -225,32 +149,6 @@ export default {
                 No orders yet. Use the customer demo account to place an order.
             </div>
 
-<<<<<<< HEAD
-            <div class="page-controls">
-                <span>
-                    {{ filtered.length }} orders
-                </span>
-
-                <button
-                    class="btn btn-outline-primary btn-sm"
-                    :disabled="page === 1"
-                    @click="page--"
-                >
-                    Previous
-                </button>
-
-                <span>
-                    {{ page }} / {{ pages }}
-                </span>
-
-                <button
-                    class="btn btn-outline-primary btn-sm"
-                    :disabled="page >= pages"
-                    @click="page++"
-                >
-                    Next
-                </button>
-=======
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mt-4">
                 <span class="small text-medium-emphasis">{{ filtered.length }} orders</span>
                 <v-pagination
@@ -261,7 +159,6 @@ export default {
                     rounded="circle"
                 />
                 <span class="small text-medium-emphasis">Page {{ page }} of {{ pages }}</span>
->>>>>>> origin/main
             </div>
         </div>
     </div>

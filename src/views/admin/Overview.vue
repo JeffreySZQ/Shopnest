@@ -1,47 +1,3 @@
-<<<<<<< HEAD
-<script setup>
-import { computed } from 'vue';
-import { useStore } from '@/stores/shop.js';
-import {
-    Wallet,
-    ShoppingBag,
-    Package,
-    Truck,
-    ArrowRight
-} from 'lucide-vue-next';
-import StatusBadge from '@/components/StatusBadge.vue';
-
-const s = useStore();
-
-const recent = computed(() =>
-    s.orders.slice().reverse().slice(0, 5)
-);
-
-const todo = computed(() =>
-    s.orders.filter(o => o.fulfillmentStatus === 'processing')
-);
-
-const bars = computed(() => {
-    const days = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date();
-
-        d.setDate(d.getDate() - (6 - i));
-
-        return d.toISOString().slice(0, 10);
-    });
-
-    return days.map(date => ({
-        date,
-        value: s.orders
-            .filter(o => o.createdAt.slice(0, 10) === date)
-            .reduce((sum, o) => sum + o.total, 0)
-    }));
-});
-
-const max = computed(() =>
-    Math.max(100, ...bars.value.map(d => d.value))
-);
-=======
 <script>
 import { mapStores } from 'pinia';
 import { useStore } from '@/stores/shop.js';
@@ -77,7 +33,6 @@ export default {
     },
     data() { return { loadError: '' }; }
 };
->>>>>>> origin/main
 </script>
 
 <template>
@@ -173,11 +128,7 @@ export default {
                     <details class="mt-3">
                         <summary>View sales as a table</summary>
 
-<<<<<<< HEAD
-                        <table class="table mt-2">
-=======
                         <v-table class="mt-2" density="comfortable">
->>>>>>> origin/main
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -194,11 +145,7 @@ export default {
                                     <td>{{ b.value.toFixed(2) }}</td>
                                 </tr>
                             </tbody>
-<<<<<<< HEAD
-                        </table>
-=======
                         </v-table>
->>>>>>> origin/main
                     </details>
                 </section>
             </div>

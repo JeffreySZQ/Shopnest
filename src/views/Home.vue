@@ -1,31 +1,8 @@
-<<<<<<< HEAD
-<script setup>
-import { computed } from 'vue';
-import { useStore } from '@/stores/shop.js';
-import ProductCard from '@/components/ProductCard.vue';
-import {
-    ArrowRight,
-    Truck,
-    ShieldCheck,
-    Sparkles,
-    Download,
-    BookOpen,
-    HeartHandshake,
-    Lightbulb
-} from 'lucide-vue-next';
-
-const s = useStore();
-
-const featured = computed(() =>
-    s.published.slice().sort((a, b) => (b.likes || 0) - (a.likes || 0)).slice(0, 4)
-);
-=======
 <script>
 import { mapStores } from 'pinia';
 import { useStore } from '@/stores/shop.js';
 import ProductCard from '@/components/ProductCard.vue';
 import { ArrowRight, Truck, ShieldCheck, Sparkles, Download, BookOpen, HeartHandshake, Lightbulb } from 'lucide-vue-next';
->>>>>>> origin/main
 
 const categoryIcons = {
     Leadership: BookOpen,
@@ -33,10 +10,6 @@ const categoryIcons = {
     Coaching: HeartHandshake,
     Productivity: Lightbulb
 };
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/main
 const categoryDescriptions = {
     Leadership: 'Lead with purpose',
     'Personal Growth': 'Make time to reflect',
@@ -44,16 +17,6 @@ const categoryDescriptions = {
     Productivity: 'Make every day count'
 };
 
-<<<<<<< HEAD
-const cats = computed(() => {
-    const names = Array.from(new Set(s.published.map(p => p.category).filter(Boolean)));
-    return names.map(name => ({
-        name,
-        icon: categoryIcons[name] || Lightbulb,
-        copy: categoryDescriptions[name] || 'Explore the collection'
-    }));
-});
-=======
 export default {
     name: 'HomeView',
     components: { ProductCard, ArrowRight, Truck, ShieldCheck, Sparkles, Download, BookOpen, HeartHandshake, Lightbulb },
@@ -73,7 +36,6 @@ export default {
         }
     }
 };
->>>>>>> origin/main
 </script>
 
 <template>

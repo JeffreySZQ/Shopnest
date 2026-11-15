@@ -1,35 +1,3 @@
-<<<<<<< HEAD
-<script setup>
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { useStore } from '@/stores/shop.js';
-import { downloadReceipt } from '@/utils/receipt.js';
-import { CheckCircle2, PackageCheck, ArrowRight, Download } from 'lucide-vue-next';
-import { api } from '@/services/shopApi.js';
-
-const s = useStore();
-const route = useRoute();
-const order = ref(null);
-const error = ref('');
-
-onMounted(async () => {
-    try {
-        const result = await api.get('/orders/' + encodeURIComponent(route.params.id));
-        order.value = result.order;
-    } catch (e) {
-        error.value = e.message;
-    }
-});
-
-function getReceipt() {
-    try {
-        error.value = '';
-        downloadReceipt(order.value);
-    } catch (e) {
-        error.value = e.message;
-    }
-}
-=======
 <script>
 import { CheckCircle2, PackageCheck, ArrowRight, Download } from 'lucide-vue-next';
 import { downloadReceipt } from '@/utils/receipt.js';
@@ -56,7 +24,6 @@ export default {
         }
     }
 };
->>>>>>> origin/main
 </script>
 
 <template>
@@ -114,16 +81,6 @@ export default {
                     <ArrowRight :size="17" />
                 </RouterLink>
 
-<<<<<<< HEAD
-                <button
-                    v-if="order.paymentStatus === 'paid'"
-                    class="btn btn-outline-primary btn-lg"
-                    @click="getReceipt"
-                >
-                    <Download :size="17" />
-                    Download PDF Receipt
-                </button>
-=======
                 <v-btn
                     v-if="order.paymentStatus === 'paid'"
                     variant="outlined"
@@ -133,7 +90,6 @@ export default {
                 >
                     <Download :size="17" /> Download PDF Receipt
                 </v-btn>
->>>>>>> origin/main
 
                 <RouterLink
                     to="/catalog"

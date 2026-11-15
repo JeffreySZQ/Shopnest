@@ -1,113 +1,8 @@
-<<<<<<< HEAD
-<script setup>
-import { computed, ref, watch, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useStore } from '@/stores/shop.js';
-=======
 <script>
->>>>>>> origin/main
 import { ArrowLeft, RotateCcw, CheckCircle2, GitCompare, Image as ImageIcon } from 'lucide-vue-next';
 import ProductArt from '@/components/ProductArt.vue';
 import { api } from '@/services/shopApi.js';
 
-<<<<<<< HEAD
-const s = useStore();
-const route = useRoute();
-const router = useRouter();
-const product = ref(null);
-const versions = ref([]);
-const olderId = ref(null);
-const newerId = ref(null);
-const isConfirming = ref(false);
-const error = ref('');
-const loading = ref(true);
-
-async function loadVersions() {
-    loading.value = true;
-    error.value = '';
-    try {
-        const id = Number(route.params.id);
-        const productResult = await api.get('/products/' + id);
-        product.value = productResult.product;
-        const versionResult = await api.get(`/admin/products/${id}/versions`);
-        versions.value = versionResult.versions.map(v => ({
-            ...v,
-            version: Number(v.version),
-            snapshot: v.snapshot || {}
-        }));
-    } catch (e) {
-        error.value = e.message;
-    } finally {
-        loading.value = false;
-    }
-}
-
-onMounted(loadVersions);
-watch(() => route.params.id, loadVersions);
-
-watch(versions, list => {
-    if (!list.length) return;
-    if (!list.some(v => v.version === newerId.value)) newerId.value = list[0].version;
-    if (!list.some(v => v.version === olderId.value) || olderId.value === newerId.value) {
-        const previous = list.find(v => v.version !== newerId.value);
-        olderId.value = previous ? previous.version : list[0].version;
-    }
-}, { immediate: true });
-
-const oldVersion = computed(() => versions.value.find(v => v.version === olderId.value));
-const newVersion = computed(() => versions.value.find(v => v.version === newerId.value));
-const oldSnap = computed(() => oldVersion.value ? oldVersion.value.snapshot : {});
-const newSnap = computed(() => newVersion.value ? newVersion.value.snapshot : {});
-
-const comparable = [
-    { key: 'name', label: 'Product name' },
-    { key: 'sku', label: 'SKU' },
-    { key: 'category', label: 'Category' },
-    { key: 'type', label: 'Product type' },
-    { key: 'status', label: 'Publication' },
-    { key: 'short', label: 'Short description' },
-    { key: 'description', label: 'Long description' },
-    { key: 'price', label: 'Unit price' },
-    { key: 'stock', label: 'Stock' },
-    { key: 'imagePath', label: 'Image path' },
-    { key: 'imageAlt', label: 'Image description' }
-];
-
-function displayValue(snapshot, key) {
-    if (key === 'price') return `RM ${Number(snapshot.price || 0).toFixed(2)}`;
-    if (key === 'stock') return String(Number(snapshot.stock || 0));
-    return String(snapshot[key] === undefined || snapshot[key] === null || snapshot[key] === '' ? 'Not specified' : snapshot[key]);
-}
-
-function changed(key) {
-    return displayValue(oldSnap.value, key) !== displayValue(newSnap.value, key);
-}
-
-const changedCount = computed(() => comparable.filter(field => changed(field.key)).length);
-
-async function restore() {
-    if (!product.value || !olderId.value) return;
-    error.value = '';
-    try {
-        const result = await api.post(`/admin/products/${product.value.id}/restore/${olderId.value}`, {});
-        isConfirming.value = false;
-        router.push({
-            name: 'admin-product-edit',
-            params: { id: product.value.id },
-            query: { draftVersion: String(result.draftVersion) }
-        });
-    } catch (e) {
-        error.value = e.message;
-    }
-}
-
-function formatted(date) {
-    return new Date(date).toLocaleString('en-MY', {
-        dateStyle: 'medium',
-        timeStyle: 'short'
-    });
-}
-=======
 export default {
     name: 'AdminProductVersionsView',
     components: { ArrowLeft, RotateCcw, CheckCircle2, GitCompare, ImageIcon, ProductArt },
@@ -215,7 +110,6 @@ export default {
         }
     }
 };
->>>>>>> origin/main
 </script>
 
 <template>
@@ -278,11 +172,7 @@ export default {
                     Choose exactly two versions to compare.
                 </p>
 
-<<<<<<< HEAD
-                <button
-=======
                 <v-btn
->>>>>>> origin/main
                     v-for="v in versions"
                     :key="v.version"
                     class="version-tile"
@@ -291,19 +181,6 @@ export default {
                     :class="{ selected: v.version === olderId || v.version === newerId }"
                     @click="v.version === newerId ? olderId = v.version : newerId = v.version"
                 >
-<<<<<<< HEAD
-                    <div class="version-tile-content">
-                        <div class="version-tile-heading">
-                            <strong>v{{ v.version }}</strong>
-                            <span class="version-tile-status">{{ v.status }}</span>
-                        </div>
-
-                        <small>{{ formatted(v.createdAt) }}</small>
-                        <small>{{ v.actor }}</small>
-                        <small class="version-tile-note">{{ v.note }}</small>
-                    </div>
-                </button>
-=======
                     <span class="d-flex justify-content-between">
                         <strong>v{{ v.version }}</strong>
                         <span class="small">{{ v.status }}</span>
@@ -313,7 +190,6 @@ export default {
                     <small>{{ v.actor }}</small>
                     <small>{{ v.note }}</small>
                 </v-btn>
->>>>>>> origin/main
             </aside>
 
             <div class="version-main">
@@ -330,55 +206,6 @@ export default {
 
                     <div class="row g-3">
                         <div class="col-md-6">
-<<<<<<< HEAD
-                            <label
-                                class="form-label"
-                                for="oldversion"
-                            >
-                                Earlier / restore source
-                            </label>
-
-                            <select
-                                id="oldversion"
-                                class="form-select"
-                                v-model.number="olderId"
-                            >
-                                <option
-                                    v-for="v in versions"
-                                    :key="v.version"
-                                    :value="v.version"
-                                >
-                                    v{{ v.version }} ·
-                                    {{ formatted(v.createdAt) }}
-                                    ({{ v.status }})
-                                </option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label
-                                class="form-label"
-                                for="newversion"
-                            >
-                                Compare with
-                            </label>
-
-                            <select
-                                id="newversion"
-                                class="form-select"
-                                v-model.number="newerId"
-                            >
-                                <option
-                                    v-for="v in versions"
-                                    :key="v.version"
-                                    :value="v.version"
-                                >
-                                    v{{ v.version }} ·
-                                    {{ formatted(v.createdAt) }}
-                                    ({{ v.status }})
-                                </option>
-                            </select>
-=======
                             <v-select
                                 v-model="olderId"
                                 :items="versionOptions"
@@ -400,7 +227,6 @@ export default {
                                 variant="outlined"
                                 density="comfortable"
                             />
->>>>>>> origin/main
                         </div>
                     </div>
 
@@ -511,21 +337,9 @@ export default {
                         </p>
                     </div>
 
-<<<<<<< HEAD
-                    <button
-                        class="btn btn-primary"
-                        type="button"
-                        :disabled="olderId === newerId"
-                        @click="isConfirming = true"
-                    >
-                        <RotateCcw :size="16" />
-                        Review restore
-                    </button>
-=======
                     <v-btn color="primary" :disabled="olderId === newerId || !olderId" @click="isConfirming = true">
                         <RotateCcw :size="16" /> Review restore
                     </v-btn>
->>>>>>> origin/main
                 </div>
 
                 <div
@@ -557,29 +371,10 @@ export default {
                     </p>
 
                     <div class="d-flex gap-2 flex-wrap">
-<<<<<<< HEAD
-                        <button
-                            class="btn btn-outline-primary"
-                            type="button"
-                            @click="isConfirming = false"
-                        >
-                            Cancel
-                        </button>
-
-                        <button
-                            class="btn btn-primary"
-                            type="button"
-                            @click="restore"
-                        >
-                            <RotateCcw :size="16" />
-                            Confirm restore
-                        </button>
-=======
                         <v-btn variant="outlined" color="primary" @click="isConfirming = false">Cancel</v-btn>
                         <v-btn color="primary" @click="restore">
                             <RotateCcw :size="16" /> Confirm restore
                         </v-btn>
->>>>>>> origin/main
                     </div>
                 </div>
             </div>

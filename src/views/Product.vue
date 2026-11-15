@@ -1,86 +1,12 @@
-<<<<<<< HEAD
-<script setup>
-import { computed, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useCurrencyStore } from '@/stores/currency.js';
-import {
-    Heart,
-    ShoppingCart,
-    ArrowLeft,
-    Truck,
-    Download,
-    CheckCircle2,
-    Minus,
-    Plus
-} from 'lucide-vue-next';
-import { useStore } from '@/stores/shop.js';
-=======
 <script>
 import { mapStores } from 'pinia';
 import { useStore } from '@/stores/shop.js';
 import { useCurrencyStore } from '@/stores/currency.js';
 import { Heart, ShoppingCart, ArrowLeft, Truck, Download, CheckCircle2, Minus, Plus } from 'lucide-vue-next';
->>>>>>> origin/main
 import ProductArt from '@/components/ProductArt.vue';
 import ProductCard from '@/components/ProductCard.vue';
 import { api, refreshCart, refreshLikes } from '@/services/shopApi.js';
 
-<<<<<<< HEAD
-const s = useStore();
-const currency = useCurrencyStore();
-const route = useRoute();
-const router = useRouter();
-const qty = ref(1);
-const notice = ref('');
-const busy = ref(false);
-
-const p = computed(() =>
-    s.products.find(product => Number(product.id) === Number(route.params.id) && product.status === 'published')
-);
-
-const related = computed(() =>
-    s.published.filter(product => product.category === p.value?.category && product.id !== p.value?.id).slice(0, 3)
-);
-
-watch(() => route.params.id, () => {
-    qty.value = 1;
-    notice.value = '';
-});
-
-async function add() {
-    if (!p.value) return;
-    if (!s.user) {
-        router.push({ name: 'login', query: { redirect: route.fullPath } });
-        return;
-    }
-    busy.value = true;
-    notice.value = '';
-    try {
-        await api.post('/cart/items', { productId: p.value.id, quantity: qty.value });
-        await refreshCart(s);
-        notice.value = 'Added to cart!';
-    } catch (e) {
-        notice.value = e.message;
-    } finally {
-        busy.value = false;
-    }
-}
-
-async function like() {
-    if (!p.value) return;
-    if (!s.user) {
-        router.push({ name: 'login', query: { redirect: route.fullPath } });
-        return;
-    }
-    try {
-        const result = await api.post(`/likes/${p.value.id}/toggle`, {});
-        p.value.likes = Number(result.likes);
-        await refreshLikes(s);
-    } catch (e) {
-        notice.value = e.message;
-    }
-}
-=======
 export default {
     name: 'ProductView',
     components: { Heart, ShoppingCart, ArrowLeft, Truck, Download, CheckCircle2, Minus, Plus, ProductArt, ProductCard },
@@ -148,7 +74,6 @@ export default {
         }
     }
 };
->>>>>>> origin/main
 </script>
 
 <template>
@@ -193,41 +118,6 @@ export default {
 
         <div class="detail-actions">
           <div class="qty-picker">
-<<<<<<< HEAD
-            <button
-              :disabled="qty <= 1"
-              aria-label="Decrease quantity"
-              @click="qty--"
-            >
-              <Minus :size="17" />
-            </button>
-            <span aria-live="polite">{{ qty }}</span>
-            <button
-              :disabled="p.type === 'physical' && qty >= p.stock"
-              aria-label="Increase quantity"
-              @click="qty++"
-            >
-              <Plus :size="17" />
-            </button>
-          </div>
-
-          <button
-            class="btn btn-primary btn-lg flex-grow-1"
-            :disabled="busy || (p.type === 'physical' && p.stock === 0)"
-            @click="add"
-          >
-            <ShoppingCart :size="18" />
-            Add to cart
-          </button>
-
-          <button
-            class="btn btn-outline-primary heart-action"
-            :aria-label="'Like ' + p.name"
-            @click="like"
-          >
-            <Heart :size="20" :fill="s.isLiked(p.id) ? 'currentColor' : 'none'" />
-          </button>
-=======
             <v-btn icon variant="text" :disabled="qty <= 1" aria-label="Decrease quantity" @click="qty--">
               <Minus :size="17" />
             </v-btn>
@@ -244,7 +134,6 @@ export default {
           <v-btn icon variant="outlined" color="primary" class="heart-action" :aria-label="'Like ' + p.name" @click="like">
             <Heart :size="20" :fill="s.isLiked(p.id) ? 'currentColor' : 'none'" />
           </v-btn>
->>>>>>> origin/main
         </div>
 
         <p v-if="notice" role="status" class="form-notice">

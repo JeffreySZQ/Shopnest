@@ -1,41 +1,3 @@
-<<<<<<< HEAD
-<script setup>
-import { computed } from 'vue'
-import { useStore } from '@/stores/shop.js'
-import {
-  ShoppingBag,
-  Package,
-  Heart,
-  ArrowRight,
-  UserRound
-} from 'lucide-vue-next'
-
-import PageHeading from '@/components/PageHeading.vue'
-import StatusBadge from '@/components/StatusBadge.vue'
-
-const s = useStore()
-
-const latest = computed(() =>
-  s.myOrders.slice(0, 3)
-)
-
-const downloads = computed(() =>
-  s.myOrders
-    .filter(o => o.paymentStatus === 'paid')
-    .reduce(
-      (count, o) =>
-        count +
-        o.items
-          .filter(i => i.type === 'digital')
-          .reduce((n, i) => n + i.quantity, 0),
-      0
-    )
-)
-
-const likes = computed(() =>
-  s.liked[s.user?.id]?.length || 0
-)
-=======
 <script>
 import { mapStores } from 'pinia';
 import { useStore } from '@/stores/shop.js';
@@ -68,7 +30,6 @@ export default {
     },
     data() { return { loadError: '' }; }
 };
->>>>>>> origin/main
 </script>
 
 <template>

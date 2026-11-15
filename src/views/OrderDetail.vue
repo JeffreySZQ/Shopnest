@@ -1,83 +1,12 @@
-<<<<<<< HEAD
-<script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useStore } from '@/stores/shop.js';
-import { useRoute } from 'vue-router';
-=======
 <script>
 import { mapStores } from 'pinia';
 import { useStore } from '@/stores/shop.js';
->>>>>>> origin/main
 import PageHeading from '@/components/PageHeading.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import { ArrowLeft, Download, Ban } from 'lucide-vue-next';
 import { downloadReceipt } from '@/utils/receipt.js';
 import { api, refreshOrders } from '@/services/shopApi.js';
 
-<<<<<<< HEAD
-const store = useStore();
-const route = useRoute();
-const order = ref(null);
-const notice = ref('');
-const error = ref('');
-const busy = ref(false);
-
-const canCancel = computed(() =>
-    order.value &&
-    ['processing', 'digital delivered'].includes(order.value.fulfillmentStatus) &&
-    order.value.cancellationStatus !== 'pending' &&
-    order.value.cancellationStatus !== 'approved'
-);
-
-onMounted(async () => {
-    try {
-        const result = await api.get('/orders/' + encodeURIComponent(route.params.id));
-        order.value = result.order;
-    } catch (e) {
-        error.value = e.message;
-    }
-});
-
-function getReceipt() {
-    error.value = '';
-    try {
-        downloadReceipt(order.value);
-    } catch (e) {
-        error.value = e.message;
-    }
-}
-
-async function cancelOrder() {
-    error.value = '';
-    if (!order.value) return;
-    if (!window.confirm('Request cancellation? An administrator must review it. No real refund will be issued.')) return;
-
-    busy.value = true;
-    try {
-        await api.post('/orders/' + encodeURIComponent(order.value.id) + '/cancellation', {});
-        await refreshOrders(store);
-        const result = await api.get('/orders/' + encodeURIComponent(order.value.id));
-        order.value = result.order;
-        notice.value = 'Cancellation requested. An administrator can review it. No actual refund has been issued.';
-    } catch (e) {
-        error.value = e.message;
-    } finally {
-        busy.value = false;
-    }
-}
-
-function demoDownload() {
-    const blob = new Blob(
-        ['ShopNest demo digital access notice\nThis is a sample file, not a purchased product.'],
-        { type: 'text/plain' }
-    );
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'shopnest-demo-access.txt';
-    a.click();
-    URL.revokeObjectURL(a.href);
-}
-=======
 export default {
     name: 'OrderDetailView',
     components: { PageHeading, StatusBadge, ArrowLeft, Download, Ban },
@@ -135,7 +64,6 @@ export default {
         }
     }
 };
->>>>>>> origin/main
 </script>
 
 <template>
@@ -219,10 +147,7 @@ export default {
 
                         <p class="small muted">
                             {{ order.email }}
-<<<<<<< HEAD
-=======
                             <span v-if="order.phone"> · {{ order.phone }}</span>
->>>>>>> origin/main
                         </p>
 
                         <p v-if="order.address">
@@ -235,38 +160,6 @@ export default {
                             class="order-actions"
                             aria-label="Order actions"
                         >
-<<<<<<< HEAD
-                            <button
-                                type="button"
-                                class="btn btn-primary w-100"
-                                :disabled="order.paymentStatus !== 'paid'"
-                                @click="getReceipt"
-                            >
-                                <Download
-                                    :size="18"
-                                    aria-hidden="true"
-                                />
-                                Download PDF Receipt
-                            </button>
-
-                            <button
-                                type="button"
-                                class="btn btn-outline-danger w-100"
-                                :disabled="!canCancel || busy"
-                                @click="cancelOrder"
-                            >
-                                <Ban
-                                    :size="18"
-                                    aria-hidden="true"
-                                />
-
-                                {{
-                                    order.cancellationStatus === 'pending'
-                                        ? 'Cancellation requested'
-                                        : 'Cancel / Request Refund'
-                                }}
-                            </button>
-=======
                             <v-btn color="primary" block :disabled="order.paymentStatus !== 'paid'" @click="getReceipt">
                                 <Download :size="18" aria-hidden="true" /> Download PDF Receipt
                             </v-btn>
@@ -275,7 +168,6 @@ export default {
                                 <Ban :size="18" aria-hidden="true" />
                                 {{ order.cancellationStatus === 'pending' ? 'Cancellation requested' : 'Cancel / Request Refund' }}
                             </v-btn>
->>>>>>> origin/main
                         </div>
 
                         <p class="small muted mt-3">
@@ -291,30 +183,12 @@ export default {
                             Previous cancellation request was declined.
                         </p>
 
-<<<<<<< HEAD
-                        <p
-                            v-if="notice"
-                            class="form-notice mt-2"
-                            role="status"
-                        >
-                            {{ notice }}
-                        </p>
-
-                        <p
-                            v-if="error"
-                            class="text-danger mt-2"
-                            role="alert"
-                        >
-                            {{ error }}
-                        </p>
-=======
                         <v-alert v-if="notice" type="info" variant="tonal" class="mt-2" role="status">
                             {{ notice }}
                         </v-alert>
                         <v-alert v-if="error" type="error" variant="tonal" class="mt-2" role="alert">
                             {{ error }}
                         </v-alert>
->>>>>>> origin/main
 
                         <div
                             v-if="order.items.some(item => item.type === 'digital')"
@@ -327,19 +201,9 @@ export default {
                                 Real products require secure backend file delivery.
                             </p>
 
-<<<<<<< HEAD
-                            <button
-                                class="btn btn-outline-primary btn-sm"
-                                @click="demoDownload"
-                            >
-                                <Download :size="16" />
-                                Download sample notice
-                            </button>
-=======
                             <v-btn variant="outlined" color="primary" size="small" @click="demoDownload">
                                 <Download :size="16" /> Download sample notice
                             </v-btn>
->>>>>>> origin/main
                         </div>
                     </div>
                 </div>
