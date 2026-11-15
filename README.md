@@ -1,6 +1,6 @@
 # ShopNest
 
-ShopNest is a student e-commerce web application for practical learning resources, journals, workbooks and digital downloads. It is built with Vue 3 using the Options API, Pinia, Vuetify, Bootstrap, PHP and MariaDB/MySQL.
+ShopNest is a e-commerce web application for practical learning resources, journals, workbooks and digital downloads. It is built with Vue 3 using the Options API, Pinia, Vuetify, Bootstrap, PHP and MariaDB/MySQL.
 
 ## Technology stack
 
@@ -30,7 +30,6 @@ ShopNest is a student e-commerce web application for practical learning resource
 - Guest-to-account cart merge after login or registration
 - Account cart stored in MariaDB
 - Customer registration and login
-- Live password requirements during registration: at least 8 characters, one uppercase letter, one lowercase letter and one number
 - Server-side password policy enforcement (client-side validation is not treated as a security boundary)
 - Accessible show/hide password controls and live validation feedback
 - Wishlist / product likes
@@ -146,35 +145,6 @@ Vite writes the production frontend into `dist/`.
 2. Import `resources/ShopnestTable.sql`.
 3. Import `resources/MockData.sql` once.
 4. Create `resources/db-config.php` on the server using the example below.
-
-### Existing database migration
-
-If the existing database already has the ShopNest tables, back it up first and run the SQL in:
-
-```text
-resources/migrations/001_guest_cart_and_customer_phone.sql
-```
-
-This migration creates `cart_merge_tokens` if it is missing and checks `information_schema` before adding `orders.customer_phone`. It is safe to run when either change has already been applied.
-
-### Private database configuration
-
-Copy `resources/db-config.example.php` to `resources/db-config.php` and insert your assigned database credentials:
-
-```php
-<?php
-
-return array(
-    'host' => 'YOUR_MARIADB_HOST',
-    'username' => 'YOUR_DATABASE_USERNAME',
-    'password' => 'YOUR_DATABASE_PASSWORD',
-    'database' => 'YOUR_DATABASE_NAME'
-);
-
-?>
-```
-
-Never commit `resources/db-config.php` to GitHub. The actual file must be installed privately on Mercury. Rotate any database password that has previously been exposed in a public repository or chat.
 
 ## Guest cart synchronisation
 
