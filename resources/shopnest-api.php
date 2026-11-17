@@ -508,10 +508,7 @@ function apiOrderOutput($order) {
         'userId' => (int)$order['user_id'],
         'customer' => $order['customer_name'],
         'email' => $order['customer_email'],
-<<<<<<< HEAD
-=======
         'phone' => isset($order['customer_phone']) ? $order['customer_phone'] : '',
->>>>>>> origin/main
         'items' => $items,
         'subtotal' => (float)$order['subtotal'],
         'shipping' => (float)$order['shipping_fee'],
@@ -591,8 +588,6 @@ try {
             if (strlen($password) < 8) {
                 apiFail('Password must contain at least 8 characters.', 400);
             }
-<<<<<<< HEAD
-=======
             if (!preg_match('/[A-Z]/', $password)) {
                 apiFail('Password must contain at least one uppercase letter.', 400);
             }
@@ -602,7 +597,6 @@ try {
             if (!preg_match('/[0-9]/', $password)) {
                 apiFail('Password must contain at least one number.', 400);
             }
->>>>>>> origin/main
 
             $existing = apiRows('SELECT id FROM users WHERE email = ?', 's', array($email));
             if (count($existing)) {
@@ -797,8 +791,6 @@ try {
     // Customer cart
     if ($resource === 'cart') {
         $user = apiRequireLogin();
-<<<<<<< HEAD
-=======
 
         // POST /cart/merge
         // Merge a guest cart exactly once for each user/token pair.
@@ -917,7 +909,6 @@ try {
             }
         }
 
->>>>>>> origin/main
         $cartId = apiCartId((int)$user['id']);
 
         if ($method === 'GET') {
@@ -1039,14 +1030,11 @@ try {
                 apiFail('Enter a valid email address.', 400);
             }
 
-<<<<<<< HEAD
-=======
             $phone = isset($input['phone']) ? trim($input['phone']) : '';
             if ($phone === '' || strlen($phone) > 40 || !preg_match('/^[0-9+()\-\s]{7,40}$/', $phone)) {
                 apiFail('Enter a valid contact phone number.', 400);
             }
 
->>>>>>> origin/main
             $subtotal = 0;
             $hasPhysical = false;
             foreach ($rows as $item) {
@@ -1076,15 +1064,9 @@ try {
             $fulfillment = $hasPhysical ? 'processing' : 'digital delivered';
 
             $orderResult = apiExec(
-<<<<<<< HEAD
-                "INSERT INTO orders (order_number, user_id, customer_name, customer_email, shipping_address, city, postcode, subtotal, shipping_fee, total, payment_status, fulfillment_status, is_demo_payment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'paid', ?, 1)",
-                'sisssssddds',
-                array($orderNumber, (int)$user['id'], $user['name'], $email, $address, $city, $postcode, $subtotal, $shipping, $total, $fulfillment)
-=======
                 "INSERT INTO orders (order_number, user_id, customer_name, customer_email, customer_phone, shipping_address, city, postcode, subtotal, shipping_fee, total, payment_status, fulfillment_status, is_demo_payment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'paid', ?, 1)",
                 'sissssssddds',
                 array($orderNumber, (int)$user['id'], $user['name'], $email, $phone, $address, $city, $postcode, $subtotal, $shipping, $total, $fulfillment)
->>>>>>> origin/main
             );
             $orderId = (int)$orderResult['insertId'];
 
@@ -1320,8 +1302,6 @@ try {
                 'i',
                 array($productId)
             );
-<<<<<<< HEAD
-=======
 
             // Create a baseline snapshot the first time version history is opened.
             // This avoids requiring JSON_OBJECT() in older MariaDB installations.
@@ -1362,7 +1342,6 @@ try {
                 );
             }
 
->>>>>>> origin/main
             foreach ($versions as $index => $version) {
                 $decoded = json_decode($version['snapshot'], true);
                 $versions[$index]['version'] = (int)$version['version'];

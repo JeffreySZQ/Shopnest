@@ -61,8 +61,6 @@ CREATE TABLE IF NOT EXISTS cart_items (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
-<<<<<<< HEAD
-=======
 CREATE TABLE IF NOT EXISTS cart_merge_tokens (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id INT UNSIGNED NOT NULL,
@@ -76,7 +74,6 @@ CREATE TABLE IF NOT EXISTS cart_merge_tokens (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
->>>>>>> origin/main
 CREATE TABLE IF NOT EXISTS wishlist_items (
     user_id INT UNSIGNED NOT NULL,
     product_id INT UNSIGNED NOT NULL,
@@ -115,10 +112,7 @@ CREATE TABLE IF NOT EXISTS orders (
     user_id INT UNSIGNED NOT NULL,
     customer_name VARCHAR(100) NOT NULL,
     customer_email VARCHAR(191) NOT NULL,
-<<<<<<< HEAD
-=======
     customer_phone VARCHAR(40) NULL,
->>>>>>> origin/main
     shipping_address TEXT,
     city VARCHAR(100),
     postcode VARCHAR(20),
