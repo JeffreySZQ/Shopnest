@@ -7,73 +7,137 @@ import ProductArt from '@/components/ProductArt.vue';
 import ProductCard from '@/components/ProductCard.vue';
 import { api, refreshCart, refreshLikes } from '@/services/shopApi.js';
 
+<script>
+
+// CREATE THE PRODUCT DETAILS COMPONENT
 export default {
     name: 'ProductView',
     components: { Heart, ShoppingCart, ArrowLeft, Truck, Download, CheckCircle2, Minus, Plus, ProductArt, ProductCard },
+
+
+    // STORE PRODUCT QUANTITY AND NOTIFICATION
     data() {
-        return { qty: 1, notice: '', busy: false };
+        return {
+            qty: 1,
+            notice: '',
+            busy: false
+        };
     },
+
+
+    // CONNECT PINIA STORES AND COMPUTED PROPERTIES
     computed: {
         ...mapStores(useStore, useCurrencyStore),
-        s() { return this.shopStore; },
-        currency() { return this.currencyStore; },
+
+        s() {
+            return this.shopStore;
+        },
+
+        currency() {
+            return this.currencyStore;
+        },
+
+
+        // FIND THE SELECTED PRODUCT
         p() {
             return this.s.products.find(product =>
                 Number(product.id) === Number(this.$route.params.id) &&
                 product.status === 'published'
             ) || null;
         },
+
+
+        // DISPLAY RELATED PRODUCTS
         related() {
             if (!this.p) return [];
+
             return this.s.published
                 .filter(product => product.category === this.p.category && Number(product.id) !== Number(this.p.id))
                 .slice(0, 3);
         }
     },
+
+
+    // WATCH FOR CHANGES TO THE PRODUCT ID
     watch: {
         '$route.params.id'() {
             this.qty = 1;
             this.notice = '';
         }
     },
+
+
+    // DEFINE PRODUCT INTERACTION FUNCTIONS
     methods: {
+
+
+        // ADD PRODUCT TO SHOPPING CART
         async add() {
             if (!this.p) return;
+
             this.busy = true;
             this.notice = '';
+
             try {
+
+                // Add the product to the guest cart if the customer is not signed in.
                 if (!this.s.user) {
                     this.s.addGuestCart(this.p.id, this.qty);
+
                 } else {
+
+                    // Add the product to the account cart through the API.
                     await api.post('/cart/items', {
                         productId: this.p.id,
                         quantity: this.qty
                     });
+
                     await refreshCart(this.s);
                 }
+
                 this.notice = 'Added to cart!';
+
             } catch (error) {
+
                 this.notice = error.message;
+
             } finally {
+
                 this.busy = false;
             }
         },
+
+
+        // LIKE OR UNLIKE A PRODUCT
         async like() {
             if (!this.p) return;
+
+            // Redirect customers to login if they are not signed in.
             if (!this.s.user) {
-                this.$router.push({ name: 'login', query: { redirect: this.$route.fullPath } });
+                this.$router.push({
+                    name: 'login',
+                    query: { redirect: this.$route.fullPath }
+                });
                 return;
             }
+
             try {
-                const result = await api.post(`/likes/${this.p.id}/toggle`, {});
+
+                // Send a request to like or unlike the selected product.
+                const result = await api.post(/likes/${this.p.id}/toggle, {});
+
                 this.p.likes = Number(result.likes);
+
                 await refreshLikes(this.s);
+
             } catch (error) {
+
                 this.notice = error.message;
             }
         }
     }
 };
+
 </script>
 
 <template>

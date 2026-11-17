@@ -78,6 +78,7 @@ export const api = {
     }
 };
 
+// Updates the authenticated user information in the Pinia store.
 export function setStoreUser(store, user) {
     if (user) {
         const safeUser = {
@@ -95,14 +96,13 @@ export function setStoreUser(store, user) {
     }
 
     // Account cart/order/wishlist data is fetched from the server.
-    // Do not clear guestCart here: it must survive authentication
-    // until the idempotent server-side merge succeeds.
     store.cart = [];
     store.orders = [];
     store.liked = {};
     sessionPromise = Promise.resolve(user || null);
 }
 
+// Restores the user's login session and updates the Pinia store.
 export async function restoreSession(store, force = false) {
     if (!force && sessionPromise) {
         return sessionPromise;
@@ -136,12 +136,14 @@ function normaliseProduct(product) {
     };
 }
 
+// Retrieves product data and updates the Pinia store.
 export async function refreshProducts(store) {
     const result = await api.get('/products');
     store.products = result.products.map(normaliseProduct);
     return store.products;
 }
 
+// Retrieves the customer's cart and updates the Pinia state.
 export async function refreshCart(store) {
     const result = await api.get('/cart');
     store.cart = result.items.map(item => ({

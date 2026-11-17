@@ -4,12 +4,18 @@ import { useStore } from '@/stores/shop.js';
 import ProductCard from '@/components/ProductCard.vue';
 import { ArrowRight, Truck, ShieldCheck, Sparkles, Download, BookOpen, HeartHandshake, Lightbulb } from 'lucide-vue-next';
 
+<script>
+
+// CONNECT CATEGORY NAMES WITH THEIR ICONS
 const categoryIcons = {
     Leadership: BookOpen,
     'Personal Growth': Sparkles,
     Coaching: HeartHandshake,
     Productivity: Lightbulb
 };
+
+
+// CREATE DESCRIPTIONS FOR EACH CATEGORY
 const categoryDescriptions = {
     Leadership: 'Lead with purpose',
     'Personal Growth': 'Make time to reflect',
@@ -17,25 +23,67 @@ const categoryDescriptions = {
     Productivity: 'Make every day count'
 };
 
+
+// CREATE THE HOME PAGE COMPONENT
 export default {
     name: 'HomeView',
-    components: { ProductCard, ArrowRight, Truck, ShieldCheck, Sparkles, Download, BookOpen, HeartHandshake, Lightbulb },
+
+    // Register the icons and reusable components used on the homepage.
+    components: {
+        ProductCard,
+        ArrowRight,
+        Truck,
+        ShieldCheck,
+        Sparkles,
+        Download,
+        BookOpen,
+        HeartHandshake,
+        Lightbulb
+    },
+
+
+    // CONNECT THE PINIA STORE
     computed: {
         ...mapStores(useStore),
-        s() { return this.shopStore; },
-        featured() {
-            return this.s.published.slice().sort((a, b) => Number(b.likes || 0) - Number(a.likes || 0)).slice(0, 4);
+
+        // Access the main ShopNest store.
+        s() {
+            return this.shopStore;
         },
+
+
+        // DISPLAY THE FOUR POPULAR PRODUCTS
+        featured() {
+
+            return this.s.published
+                .slice()
+                .sort((a, b) => Number(b.likes || 0) - Number(a.likes || 0))
+                .slice(0, 4);
+        },
+
+
+        // DISPLAY EXPLORE BY INTENTION CATEGORIES
         cats() {
-            const names = Array.from(new Set(this.s.published.map(product => product.category).filter(Boolean)));
+
+            const names = Array.from(
+                new Set(
+                    this.s.published
+                        .map(product => product.category)
+                        .filter(Boolean)
+                )
+            );
+
+            // Create the category information for the homepage.
             return names.map(name => ({
                 name,
                 icon: categoryIcons[name] || Lightbulb,
                 copy: categoryDescriptions[name] || 'Explore the collection'
+
             }));
         }
     }
 };
+
 </script>
 
 <template>

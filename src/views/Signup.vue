@@ -91,6 +91,7 @@ export default {
         }
     },
 
+    // automatically triggers validation
     watch: {
         password() {
             this.$nextTick(() => {
@@ -114,6 +115,7 @@ export default {
 
             this.submitting = true;
 
+            // If valid, sends a POST request to the backend.
             try {
                 const result = await api.post('/auth/register', {
                     name: this.name.trim(),

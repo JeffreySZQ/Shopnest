@@ -19,6 +19,7 @@ function createToken() {
 }
 
 export const useStore = defineStore('shop', {
+    //Stores the actual data
     state: () => ({
         ready: false,
         products: [],
@@ -33,6 +34,7 @@ export const useStore = defineStore('shop', {
         logs: []
     }),
 
+    //Calculate or retrieve data
     getters: {
         user: state =>
             state.users.find(user => Number(user.id) === Number(state.currentUserId)) || null,
@@ -82,8 +84,9 @@ export const useStore = defineStore('shop', {
                 .reduce((total, order) => total + Number(order.total || 0), 0)
     },
 
+    //Perform operations and update data
     actions: {
-        init() {
+        init() { //restores the guest cart 
             if (this.ready) return;
 
             try {
@@ -114,6 +117,7 @@ export const useStore = defineStore('shop', {
             this.persistGuestCart();
         },
 
+        //makes sure guest token exists
         ensureGuestCartToken() {
             if (!/^[a-f0-9]{64}$/i.test(this.guestCartToken || '')) {
                 this.guestCartToken = createToken();
@@ -122,11 +126,12 @@ export const useStore = defineStore('shop', {
             return this.guestCartToken;
         },
 
+        //saves the restored cart
         persistGuestCart() {
             try {
                 localStorage.setItem(
                     GUEST_CART_KEY,
-                    JSON.stringify({
+                    JSON.stringify({ //js to json
                         token: this.guestCartToken,
                         items: this.guestCart
                     })
@@ -230,6 +235,8 @@ export const useStore = defineStore('shop', {
             this.products = Array.isArray(products) ? products : [];
         },
 
+
+        // Clears the main store data while preserving the guest cart
         reset() {
             this.products = [];
             this.users = [];

@@ -5,6 +5,9 @@ import { SlidersHorizontal, Search } from 'lucide-vue-next';
 import ProductCard from '@/components/ProductCard.vue';
 import PageHeading from '@/components/PageHeading.vue';
 
+<script>
+
+// PARSE AND PREPARE CATEGORY FILTERS
 function parseCategories(value) {
     if (Array.isArray(value)) {
         return value.flatMap(item => String(item).split(',')).filter(Boolean);
@@ -12,15 +15,22 @@ function parseCategories(value) {
     return String(value || '').split(',').filter(Boolean);
 }
 
+
+// PARSE AND CHECK PRODUCT TYPE
 function parseType(value) {
     const selected = Array.isArray(value) ? value[0] : value;
     const type = String(selected || '');
     return ['physical', 'digital'].includes(type) ? type : '';
 }
 
+
+// CREATE THE PRODUCT CATALOGUE COMPONENT
 export default {
     name: 'CatalogView',
     components: { SlidersHorizontal, Search, ProductCard, PageHeading },
+
+
+    // STORE SEARCH, FILTER AND PAGINATION VALUES
     data() {
         return {
             query: String(this.$route.query.q || ''),
@@ -32,15 +42,29 @@ export default {
             perPage: 9
         };
     },
+
+
+    // CONNECT THE PINIA STORE
     computed: {
         ...mapStores(useStore),
+
+        // Access the main ShopNest store.
         s() { return this.shopStore; },
+
+
+        // GET ALL AVAILABLE PRODUCT CATEGORIES
         categories() {
             return [...new Set(this.s.published.map(product => product.category).filter(Boolean))].sort();
         },
+
+
+        // CHECK WHETHER THE LIKED PRODUCTS FILTER IS ACTIVE
         onlyLiked() {
             return this.$route.query.liked === 'true';
         },
+
+
+        // SEARCH, FILTER AND SORT PRODUCTS
         filtered() {
             const likedIds = this.s.liked[this.s.user ? this.s.user.id : ''] || [];
             const searchText = this.query.trim().toLowerCase();
@@ -51,9 +75,11 @@ export default {
                 const matchesCategory = !this.category.length || this.category.includes(product.category);
                 const matchesType = !this.type || product.type === this.type;
                 const matchesLiked = !this.onlyLiked || likedIds.some(id => String(id) === String(product.id));
+
                 return matchesSearch && matchesCategory && matchesType && matchesLiked;
             });
 
+            // Sort products based on the selected sorting option.
             if (this.sort === 'featured' || this.sort === 'popular') {
                 items.sort((a, b) => Number(b.likes || 0) - Number(a.likes || 0));
             } else if (this.sort === 'price-low') {
@@ -66,16 +92,28 @@ export default {
 
             return items;
         },
+
+
+        // CALCULATE THE TOTAL NUMBER OF PAGES
         pages() {
             return Math.max(1, Math.ceil(this.filtered.length / this.perPage));
         },
+
+
+        // DISPLAY PRODUCTS FOR THE SELECTED PAGE
         shown() {
             const safePage = Math.min(this.page, this.pages);
             return this.filtered.slice((safePage - 1) * this.perPage, safePage * this.perPage);
         },
+
+
+        // CHECK WHETHER ANY FILTER IS ACTIVE
         hasActiveFilters() {
             return this.query.trim() !== '' || this.category.length > 0 || this.type !== '' || this.sort !== 'featured';
         },
+
+
+        // PROVIDE THE AVAILABLE SORTING OPTIONS
         sortOptions() {
             return [
                 { title: 'Featured', value: 'featured' },
@@ -86,13 +124,50 @@ export default {
             ];
         }
     },
+
+
+    // WATCH FOR CHANGES IN SEARCH, FILTERS AND PAGINATION
     watch: {
-        query() { this.page = 1; this.sync(); },
-        category: { deep: true, handler() { this.page = 1; this.sync(); } },
-        type() { this.page = 1; this.sync(); },
-        sort() { this.page = 1; this.sync(); },
-        page() { this.sync(); },
-        onlyLiked() { this.page = 1; },
+
+        // Reset to page 1 when the search keyword changes.
+        query() {
+            this.page = 1;
+            this.sync();
+        },
+
+        // Reset to page 1 when the selected categories change.
+        category: {
+            deep: true,
+            handler() {
+                this.page = 1;
+                this.sync();
+            }
+        },
+
+        // Reset to page 1 when the product type changes.
+        type() {
+            this.page = 1;
+            this.sync();
+        },
+
+        // Reset to page 1 when the sorting option changes.
+        sort() {
+            this.page = 1;
+            this.sync();
+        },
+
+        // Update the URL when the selected page changes.
+        page() {
+            this.sync();
+        },
+
+        // Reset to page 1 when the liked products filter changes.
+        onlyLiked() {
+            this.page = 1;
+        },
+
+
+        // WATCH FOR CHANGES IN THE URL QUERY
         '$route.query'(query) {
             const nextQuery = String(query.q || '');
             const nextCategories = parseCategories(query.category);
@@ -107,7 +182,13 @@ export default {
             if (this.page !== nextPage) this.page = nextPage;
         }
     },
+
+
+    // DEFINE CATALOGUE FUNCTIONS
     methods: {
+
+
+        // SYNCHRONISE SEARCH, FILTER AND PAGE VALUES WITH THE URL
         sync() {
             const nextQuery = {
                 q: this.query || undefined,
@@ -121,12 +202,17 @@ export default {
             const cleaned = Object.fromEntries(
                 Object.entries(nextQuery).filter(([, value]) => value !== undefined)
             );
+
             const current = this.$route.query;
+
             const same = Object.keys(cleaned).length === Object.keys(current).length &&
                 Object.entries(cleaned).every(([key, value]) => String(current[key] || '') === String(value));
 
             if (!same) this.$router.replace({ query: cleaned });
         },
+
+
+        // CLEAR ALL SEARCH AND FILTER OPTIONS
         clear() {
             this.query = '';
             this.category = [];
@@ -137,6 +223,7 @@ export default {
         }
     }
 };
+
 </script>
 
 <template>

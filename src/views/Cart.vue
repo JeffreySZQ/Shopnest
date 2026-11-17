@@ -19,7 +19,11 @@ import {
     mergeGuestCart
 } from '@/services/shopApi.js';
 
+<script>
+
 export default {
+
+    // CREATE THE SHOPPING CART COMPONENT
     name: 'CartView',
 
     components: {
@@ -31,6 +35,8 @@ export default {
         PageHeading
     },
 
+
+    // STORE CART NOTIFICATION AND LOADING STATUS
     data() {
         return {
             notice: '',
@@ -38,27 +44,31 @@ export default {
         };
     },
 
+
+    // CONNECT PINIA STORES
     computed: {
         ...mapStores(useStore, useCurrencyStore),
 
-        // Pinia shop store
+        // Access the main ShopNest store.
         s() {
             return this.shopStore;
         },
 
-        // Currency store
+        // Access the currency store.
         currency() {
             return this.currencyStore;
         },
 
-        // Calculate shipping charges.
+
+        // CALCULATE SHIPPING CHARGES
         shipping() {
             return this.s.cartItems.some(
                 item => item.product.type === 'physical'
             ) ? 8 : 0;
         },
 
-        // Checkout destination.
+
+        // DETERMINE THE CHECKOUT DESTINATION
         checkoutLink() {
             return this.s.user
                 ? '/checkout'
@@ -71,7 +81,8 @@ export default {
         }
     },
 
-    // Load the account cart and merge guest cart.
+
+    // LOAD ACCOUNT CART AND MERGE GUEST CART
     async mounted() {
         if (this.s.user) {
             try {
@@ -88,9 +99,12 @@ export default {
         }
     },
 
+
+    // DEFINE SHOPPING CART FUNCTIONS
     methods: {
 
-        // Retry guest cart merging.
+
+        // RETRY GUEST CART MERGING
         async retryGuestMerge() {
             this.notice = '';
             this.busy = true;
@@ -108,12 +122,14 @@ export default {
             }
         },
 
-        // Update or remove cart quantity.
+
+        // UPDATE OR REMOVE CART QUANTITY
         async qty(item, quantity) {
             this.notice = '';
             this.busy = true;
 
             try {
+
                 // Guest cart uses Pinia.
                 if (!this.s.user) {
                     this.s.setGuestCartQty(
@@ -122,6 +138,7 @@ export default {
                     );
 
                 } else {
+
                     // Logged-in cart uses PHP API.
                     await api.patch(
                         `/cart/items/${item.productId}`,
@@ -142,6 +159,7 @@ export default {
         }
     }
 };
+
 </script>
 
 <template>

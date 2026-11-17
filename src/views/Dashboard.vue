@@ -6,13 +6,27 @@ import PageHeading from '@/components/PageHeading.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import { refreshCustomerData } from '@/services/shopApi.js';
 
+<script>
 export default {
+
+    // CREATE THE DASHBOARD COMPONENT
+
     name: 'DashboardView',
     components: { ShoppingBag, Package, Heart, ArrowRight, UserRound, PageHeading, StatusBadge },
+
+    // CONNECT THE PINIA STORE
+
     computed: {
         ...mapStores(useStore),
+
         s() { return this.shopStore; },
+
+        // DISPLAY THE LATEST THREE ORDERS
+
         latest() { return this.s.myOrders.slice(0, 3); },
+
+        // COUNT THE CUSTOMER'S DIGITAL PRODUCTS
+
         downloads() {
             return this.s.myOrders
                 .filter(order => order.paymentStatus === 'paid')
@@ -20,15 +34,32 @@ export default {
                     .filter(item => item.type === 'digital')
                     .reduce((total, item) => total + item.quantity, 0), 0);
         },
+
+        // COUNT THE CUSTOMER'S LIKED PRODUCTS
+
         likes() {
             return this.s.liked[this.s.user ? this.s.user.id : '']?.length || 0;
         }
     },
+
+    // REFRESH CUSTOMER DASHBOARD INFORMATION
+
     async mounted() {
-        try { await refreshCustomerData(this.s); }
-        catch (error) { this.loadError = error.message; }
+        try {
+            await refreshCustomerData(this.s);
+        }
+        catch (error) {
+            this.loadError = error.message;
+        }
     },
-    data() { return { loadError: '' }; }
+
+    // STORE ERROR MESSAGES
+
+    data() {
+        return {
+            loadError: ''
+        };
+    }
 };
 </script>
 

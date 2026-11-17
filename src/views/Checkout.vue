@@ -5,10 +5,15 @@ import { ShieldCheck, ArrowLeft } from 'lucide-vue-next';
 import PageHeading from '@/components/PageHeading.vue';
 import { api, refreshCart, refreshOrders } from '@/services/shopApi.js';
 
+<script>
+
+// CREATE THE CHECKOUT COMPONENT
 export default {
     name: 'CheckoutView',
     components: { ShieldCheck, ArrowLeft, PageHeading },
 
+
+    // STORE CUSTOMER CHECKOUT INFORMATION
     data() {
         return {
             form: {
@@ -23,55 +28,77 @@ export default {
         };
     },
 
+
+    // COMPUTE SHIPPING AND FORM VALIDATION
     computed: {
         ...mapStores(useStore),
+
         s() {
             return this.shopStore;
         },
+
         physical() {
             return this.s.cartItems.some(item => item.product.type === 'physical');
         },
+
         shipping() {
             return this.physical ? 8 : 0;
         },
+
         rules() {
             return {
                 required: value => !!String(value || '').trim() || 'This field is required.',
+
                 email: value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim()) || 'Enter a valid email address.',
-                phone: value => /^[0-9+()\-\s]{7,20}$/.test(String(value || '').trim()) || 'Enter a valid phone number.',
+
+                phone: value => /^[0-9+()\-\s]{7,12}$/.test(String(value || '').trim()) || 'Enter a valid phone number.',
+
                 address: value => String(value || '').trim().length >= 5 || 'Enter a complete street address.',
+
                 city: value => String(value || '').trim().length >= 2 || 'Enter a valid city.',
+
                 postcode: value => /^\d{5,10}$/.test(String(value || '').trim()) || 'Enter a valid postcode (5–10 digits).'
             };
         }
     },
 
+
+    // AUTOMATICALLY FILL CUSTOMER EMAIL
     created() {
         this.form.email = this.s.user ? this.s.user.email : '';
     },
 
+
+    // PROCESS THE CHECKOUT
     methods: {
         async finish() {
             this.error = '';
 
+            // Check whether the customer is signed in.
             if (!this.s.user) {
                 this.error = 'Please sign in before checkout.';
                 return;
             }
 
+            // Check whether the shopping cart contains products.
             if (!this.s.cartItems.length) {
                 this.error = 'Your cart is empty.';
                 return;
             }
 
+            // Validate the checkout form.
             const validation = await this.$refs.checkoutForm.validate();
+
             if (!validation.valid) {
                 this.error = 'Please correct the highlighted checkout fields.';
                 return;
             }
 
+            // Start the checkout loading state.
             this.submitting = true;
 
+
+            // SEND CHECKOUT INFORMATION TO THE BACKEND
             try {
                 const result = await api.post('/checkout', {
                     email: this.form.email.trim(),
@@ -81,22 +108,31 @@ export default {
                     postcode: this.physical ? this.form.postcode.trim() : ''
                 });
 
+
+                // REFRESH CART AND ORDER INFORMATION
                 await refreshCart(this.s);
                 await refreshOrders(this.s);
 
+
+                // REDIRECT TO THE ORDER CONFIRMATION PAGE
                 await this.$router.push(
                     '/order-confirmed/' + encodeURIComponent(result.order.id)
                 );
 
+
+            // HANDLE CHECKOUT ERRORS
             } catch (error) {
                 this.error = error.message;
 
+
+            // STOP THE CHECKOUT LOADING STATE
             } finally {
                 this.submitting = false;
             }
         }
     }
 };
+
 </script>
 
 <template>

@@ -1,4 +1,3 @@
-
 <script>
 import { mapStores } from 'pinia';
 import { useStore } from '@/stores/shop.js';
@@ -8,9 +7,15 @@ import PageHeading from '@/components/PageHeading.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import { refreshOrders } from '@/services/shopApi.js';
 
+<script>
+
+// CREATE THE PURCHASE HISTORY COMPONENT
 export default {
     name: 'HistoryView',
     components: { Search, Download, PageHeading, StatusBadge },
+
+
+    // STORE SEARCH, FILTER AND PAGINATION VALUES
     data() {
         return {
             search: '',
@@ -20,39 +25,97 @@ export default {
             error: ''
         };
     },
+
+
+    // CONNECT THE PINIA STORE
     computed: {
         ...mapStores(useStore),
-        s() { return this.shopStore; },
-        onlyDigital() { return this.$route.query.type === 'digital'; },
+
+        s() {
+            return this.shopStore;
+        },
+
+
+        // CHECK WHETHER DIGITAL PRODUCTS ARE SELECTED
+        onlyDigital() {
+            return this.$route.query.type === 'digital';
+        },
+
+
+        // SEARCH AND FILTER CUSTOMER ORDERS
         results() {
             return this.s.myOrders.filter(order =>
+
+                // Only show orders containing digital products if the digital filter is active.
                 (!this.onlyDigital || order.items.some(item => item.type === 'digital')) &&
+
+                // Filter orders using the order ID search keyword.
                 (!this.search || String(order.id).toLowerCase().includes(this.search.toLowerCase())) &&
+
+                // Filter orders according to their fulfilment status.
                 (!this.status || order.fulfillmentStatus === this.status)
             );
         },
-        pages() { return Math.max(1, Math.ceil(this.results.length / this.size)); },
-        shown() { return this.results.slice((this.page - 1) * this.size, this.page * this.size); }
+
+
+        // CALCULATE THE TOTAL NUMBER OF PAGES
+        pages() {
+            return Math.max(1, Math.ceil(this.results.length / this.size));
+        },
+
+
+        // DISPLAY ORDERS FOR THE SELECTED PAGE
+        shown() {
+            return this.results.slice((this.page - 1) * this.size, this.page * this.size);
+        }
     },
+
+
+    // WATCH FOR SEARCH AND FILTER CHANGES
     watch: {
+
         onlyDigital(isDigital) {
             this.status = isDigital ? 'digital delivered' : '';
             this.page = 1;
         },
-        search() { this.page = 1; },
-        status() { this.page = 1; }
+
+        // Reset pagination when the search keyword changes.
+        search() {
+            this.page = 1;
+        },
+
+        // Reset pagination when the order status changes.
+        status() {
+            this.page = 1;
+        }
     },
+
+
+    // LOAD CUSTOMER PURCHASE HISTORY
     async mounted() {
-        try { await refreshOrders(this.s); }
-        catch (error) { this.error = error.message; }
+        try {
+            await refreshOrders(this.s);
+        }
+        catch (error) {
+            this.error = error.message;
+        }
     },
+
+
+    // DOWNLOAD PDF RECEIPT FROM PURCHASE HISTORY
     methods: {
         getReceipt(order) {
-            try { this.error = ''; downloadReceipt(order); }
-            catch (error) { this.error = error.message; }
+            try {
+                this.error = '';
+                downloadReceipt(order);
+            }
+            catch (error) {
+                this.error = error.message;
+            }
         }
     }
 };
+
 </script>
 
 <template>

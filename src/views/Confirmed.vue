@@ -1,29 +1,68 @@
 <script>
+// Icon
 import { CheckCircle2, PackageCheck, ArrowRight, Download } from 'lucide-vue-next';
 import { downloadReceipt } from '@/utils/receipt.js';
+
+// to retrieve order information
 import { api } from '@/services/shopApi.js';
 
+// CREATE THE VUE COMPONENT
+
 export default {
+
+    // Give the component its name.
     name: 'ConfirmedView',
+
+    // Register the icons so they can be used in the template.
     components: { CheckCircle2, PackageCheck, ArrowRight, Download },
-    data() { return { order: null, error: '', loading: true }; },
+    
+    // STORE ORDER INFORMATION
+    
+    data() {
+        return {
+            order: null,
+            error: '',
+            loading: true
+        };
+    },
+
+    // RETRIEVE ORDER INFORMATION
+
     async mounted() {
+
         try {
+
             const result = await api.get('/orders/' + encodeURIComponent(this.$route.params.id));
             this.order = result.order;
+
         } catch (error) {
             this.error = error.message;
+
         } finally {
             this.loading = false;
         }
     },
+
+    // PDF RECEIPT DOWNLOAD FUNCTION
+
     methods: {
+
+        // This function starts the PDF receipt generation process.
         getReceipt() {
-            try { this.error = ''; downloadReceipt(this.order); }
-            catch (error) { this.error = error.message; }
+
+            try {
+                this.error = '';
+
+                // Send the saved order information to the PDF generator.
+                downloadReceipt(this.order);
+
+            } catch (error) {
+                this.error = error.message;
+            }
         }
     }
 };
+
 </script>
 
 <template>

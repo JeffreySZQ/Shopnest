@@ -7,54 +7,133 @@ import { ArrowLeft, Download, Ban } from 'lucide-vue-next';
 import { downloadReceipt } from '@/utils/receipt.js';
 import { api, refreshOrders } from '@/services/shopApi.js';
 
+<script>
+
 export default {
+
+    // CREATE THE ORDER DETAILS COMPONENT
     name: 'OrderDetailView',
+
     components: { PageHeading, StatusBadge, ArrowLeft, Download, Ban },
-    data() { return { order: null, notice: '', error: '', busy: false, loading: true }; },
+
+
+    // STORE ORDER INFORMATION AND PAGE STATUS
+    data() {
+        return {
+            order: null,
+            notice: '',
+            error: '',
+            busy: false,
+            loading: true
+        };
+    },
+
+
+    // CONNECT PINIA STORE AND CHECK CANCELLATION STATUS
     computed: {
         ...mapStores(useStore),
-        store() { return this.shopStore; },
+
+        store() {
+            return this.shopStore;
+        },
+
         canCancel() {
             return this.order &&
                 ['processing', 'digital delivered'].includes(this.order.fulfillmentStatus) &&
                 !['pending', 'approved'].includes(this.order.cancellationStatus);
         }
     },
-    async mounted() { await this.loadOrder(); },
-    watch: {
-        '$route.params.id'() { this.loadOrder(); }
+
+
+    // LOAD ORDER INFORMATION WHEN THE PAGE OPENS
+    async mounted() {
+        await this.loadOrder();
     },
+
+
+    // WATCH FOR CHANGES TO THE ORDER ID
+    watch: {
+        '$route.params.id'() {
+            this.loadOrder();
+        }
+    },
+
+
+    // DEFINE ORDER DETAILS FUNCTIONS
     methods: {
+
+
+        // RETRIEVE ORDER INFORMATION
         async loadOrder() {
             this.loading = true;
             this.error = '';
+
             try {
-                const result = await api.get('/orders/' + encodeURIComponent(this.$route.params.id));
+                const result = await api.get(
+                    '/orders/' + encodeURIComponent(this.$route.params.id)
+                );
+
                 this.order = result.order;
+
             } catch (error) {
                 this.error = error.message;
-            } finally { this.loading = false; }
+
+            } finally {
+                this.loading = false;
+            }
         },
+
+
+        // DOWNLOAD PDF RECEIPT
         getReceipt() {
             this.error = '';
-            try { downloadReceipt(this.order); }
-            catch (error) { this.error = error.message; }
+
+            try {
+                downloadReceipt(this.order);
+
+            } catch (error) {
+                this.error = error.message;
+            }
         },
+
+
+        // REQUEST ORDER CANCELLATION
         async cancelOrder() {
             if (!this.order) return;
+
             if (!window.confirm('Request cancellation? An administrator must review it. No real refund will be issued.')) return;
+
             this.busy = true;
             this.error = '';
+
             try {
-                await api.post('/orders/' + encodeURIComponent(this.order.id) + '/cancellation', {});
+                await api.post(
+                    '/orders/' + encodeURIComponent(this.order.id) + '/cancellation',
+                    {}
+                );
+
                 await refreshOrders(this.store);
                 await this.loadOrder();
+
                 this.notice = 'Cancellation requested. An administrator can review it. No actual refund has been issued.';
-            } catch (error) { this.error = error.message; }
-            finally { this.busy = false; }
+
+            } catch (error) {
+                this.error = error.message;
+
+            } finally {
+                this.busy = false;
+            }
         },
+
+
+        // DOWNLOAD DEMONSTRATION DIGITAL FILE
         demoDownload() {
-            const blob = new Blob([`ShopNest demo digital access notice\nThis is a sample file, not a purchased product.`], { type: 'text/plain' });
+
+            const blob = new Blob(
+                [ShopNest demo digital access notice\nThis is a sample file, not a purchased product.],
+                { type: 'text/plain' }
+            );
+
             const url = URL.createObjectURL(blob);
             const anchor = document.createElement('a');
             anchor.href = url;
@@ -64,6 +143,7 @@ export default {
         }
     }
 };
+
 </script>
 
 <template>

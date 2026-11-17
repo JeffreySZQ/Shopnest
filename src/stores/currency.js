@@ -2,9 +2,9 @@ import { defineStore } from 'pinia'
 import { fetchExchangeRates } from '@/services/currencyService.js'
 
 const CURRENCY_KEY = 'shopnest-selected-currency'
-const CACHE_KEY = 'shopnest-exchange-rate-cache'
+const CACHE_KEY = 'shopnest-exchange-rate-cache' // retrieved from API
 
-const CACHE_DURATION = 12 * 60 * 60 * 1000
+const CACHE_DURATION = 12 * 60 * 60 * 1000 
 
 const SUPPORTED_CURRENCIES = [
     'MYR',
