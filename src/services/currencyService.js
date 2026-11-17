@@ -1,12 +1,16 @@
+//address the third party API for exchange rates
 const API_BASE_URL = 'https://api.frankfurter.dev/v2'
 
+//function to fetch exchange rates from the API
 export async function fetchExchangeRates() {
 
+    //create the URL for the API request
     const url = new URL(`${API_BASE_URL}/rates`)
 
     url.searchParams.set('base', 'MYR')
     url.searchParams.set('quotes', 'USD,SGD,EUR')
 
+    //sends the HTTP request to the API and waits for the response
     const response = await fetch(url, {
         headers: {
             Accept: 'application/json'
@@ -32,6 +36,7 @@ export async function fetchExchangeRates() {
 
     const dates = []
 
+    //loops through the data array and extracts the exchange rates for USD, SGD, and EUR
     for (const item of data) {
 
         if (
