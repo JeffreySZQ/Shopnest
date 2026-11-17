@@ -1,8 +1,7 @@
 <?php
 /*
  * ShopNest REST API
- * PHP 5.4.16 compatible.
- * Uses only the tables and columns in resources/ShopnestTable.sql.
+ * PHP 5.4.16 compatible
  */
 
 // ------------------------------------------------------------
